@@ -43,4 +43,3 @@ env/
 cache/ 
 
 .env
-.env.example

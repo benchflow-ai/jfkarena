@@ -1,20 +1,46 @@
 # JFK Arena
 
-A platform for comparing different AI models' responses to questions about JFK using RAG (Retrieval Augmented Generation).
+A platform for comparing different AI models' responses to questions about JFK using RAG (Retrieval Augmented Generation). The platform enables users to evaluate and compare how different AI models interpret and respond to questions about historical events related to JFK.
 
 ## Features
 
-- Battle interface where users can compare two different AI models' responses to JFK-related questions
-- Leaderboard showing model performance based on user votes
-- Support for multiple AI models (GPT-4, Claude 3, Gemini Pro, DeepSeek)
-- RAG-based context retrieval from JFK documents
+- Interactive battle interface for comparing two AI models' responses to JFK-related questions
+- Real-time voting system for response evaluation
+- Dynamic leaderboard tracking model performance
+- Support for multiple AI models including:
+  - GPT-4
+  - Claude 3
+  - Gemini Pro
+  - DeepSeek
+- Advanced RAG system using JFK historical documents
+- Modern, responsive UI built with Next.js and Tailwind CSS
+- Real-time data updates using PostgreSQL
+
+## Tech Stack
+
+### Frontend
+- Next.js 14
+- React 18
+- TypeScript
+- Tailwind CSS
+- Radix UI Components
+- Framer Motion
+- DrizzleORM
+
+### Backend
+- FastAPI
+- LangChain
+- FAISS for vector search
+- PostgreSQL
+- SQLAlchemy
+- Python 3.8+
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 18+ and npm
 - Python 3.8+
-- NeonDB account
-- API keys for the AI models you want to use
+- PostgreSQL database
+- API keys for supported AI models
 
 ## Setup
 
@@ -24,40 +50,45 @@ git clone https://github.com/yourusername/jfkarena.git
 cd jfkarena
 ```
 
-2. Set up the frontend:
+2. Frontend setup:
 ```bash
 cd frontend
+cp .env.example .env
 npm install
 ```
 
-3. Set up the backend:
+3. Backend setup:
 ```bash
-cd ../backend
+cd backend
+cp .env.example .env
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Configure environment variables:
-   - Copy `.env.example` to `.env` in both frontend and backend directories
-   - Fill in your API keys and database URL
+4. Environment Configuration:
 
-5. Set up the database:
-   - Create a new project in NeonDB
-   - Get your database connection string
-   - Update the `DATABASE_URL` in your frontend `.env` file
+Frontend (.env):
+```
+NEXT_PUBLIC_API_URL=your_backend_url
+DATABASE_URL=your_database_url
+```
 
-6. Add JFK documents:
-   - Create a `jfk_files` directory in the backend folder
-   - Add your JFK-related text files to this directory
+Backend (.env):
+```
+OPENAI_API_KEY=your_openai_key
+ANTHROPIC_API_KEY=your_anthropic_key
+GOOGLE_API_KEY=your_google_key
+DATABASE_URL=your_database_url
+```
 
-## Running the Application
+## Development
 
 1. Start the backend server:
 ```bash
 cd backend
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-uvicorn main:app --reload
+source venv/bin/activate
+uvicorn main:app --reload --port 8000
 ```
 
 2. Start the frontend development server:
@@ -66,24 +97,32 @@ cd frontend
 npm run dev
 ```
 
-3. Open your browser and navigate to `http://localhost:3000`
+The application will be available at `http://localhost:3000`
 
 ## Project Structure
 
 ```
 jfkarena/
-├── frontend/                 # Next.js frontend
+├── frontend/
 │   ├── src/
-│   │   ├── app/             # Next.js app router
-│   │   ├── components/      # React components
-│   │   └── lib/             # Utility functions and configurations
+│   │   ├── app/          # Next.js app router pages
+│   │   ├── components/   # Reusable React components
+│   │   └── lib/         # Utilities and configurations
+│   ├── public/          # Static assets
 │   └── package.json
-├── backend/                  # FastAPI backend
-│   ├── main.py              # Main FastAPI application
-│   ├── requirements.txt     # Python dependencies
-│   └── jfk_files/          # JFK documents for RAG
+├── backend/
+│   ├── main.py          # FastAPI application
+│   ├── requirements.txt
+│   └── cache/          # Vector store cache
 └── README.md
 ```
+
+## Deployment
+
+The project is configured for deployment with:
+- Frontend: Vercel
+- Backend: Fly.io
+- Database: NeonDB
 
 ## Contributing
 
@@ -95,4 +134,4 @@ jfkarena/
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License. 

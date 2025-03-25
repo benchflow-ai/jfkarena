@@ -5,7 +5,6 @@ __pycache__
 *.pyw
 *.pyz
 .env
-.env.example
 .env.local
 .env.development.local
 .env.test.local
