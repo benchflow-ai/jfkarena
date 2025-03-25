@@ -41,10 +41,14 @@ try:
     base_dir = os.path.dirname(os.path.abspath(__file__))
     cache_dir = os.path.join(base_dir, "cache")
     cache_path = os.path.join(cache_dir, "faiss_store")
-    data_dir = os.path.join(os.path.dirname(base_dir), "data", "jfk_text")
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(base_dir)), "data", "jfk_text")
     
     print(f"Cache path: {cache_path}")
     print(f"Data directory: {data_dir}")
+    
+    # Create directories if they don't exist
+    os.makedirs(cache_dir, exist_ok=True)
+    os.makedirs(data_dir, exist_ok=True)
     
     if os.path.exists(cache_path):
         print("Loading vector store from cache...")
@@ -62,31 +66,37 @@ try:
         # If cache doesn't exist or failed to load, create new vector store
         print("Creating new vector store...")
         if not os.path.exists(data_dir):
-            raise FileNotFoundError(f"Data directory not found: {data_dir}")
+            print(f"Warning: Data directory not found: {data_dir}")
+            print("Creating empty data directory...")
+            os.makedirs(data_dir, exist_ok=True)
             
         loader = DirectoryLoader(data_dir, glob="**/*.txt", show_progress=True)
         print(f"Loading documents from {data_dir}...")
         documents = loader.load()
         print(f"Loaded {len(documents)} documents")
         
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len,
-            separators=["\n\n", "\n", " ", ""]
-        )
-        print("Splitting documents into chunks...")
-        texts = text_splitter.split_documents(documents)
-        print(f"Created {len(texts)} text chunks")
-        
-        print("Initializing embeddings and vector store...")
-        embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
-        vectorstore = FAISS.from_documents(texts, embeddings)
-        
-        # Save to cache
-        os.makedirs(cache_dir, exist_ok=True)
-        vectorstore.save_local(cache_path)
-        print("Successfully created and cached vector store!")
+        if not documents:
+            print("Warning: No documents found in data directory")
+            vectorstore = None
+        else:
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=200,
+                length_function=len,
+                separators=["\n\n", "\n", " ", ""]
+            )
+            print("Splitting documents into chunks...")
+            texts = text_splitter.split_documents(documents)
+            print(f"Created {len(texts)} text chunks")
+            
+            print("Initializing embeddings and vector store...")
+            embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
+            vectorstore = FAISS.from_documents(texts, embeddings)
+            
+            # Save to cache
+            os.makedirs(cache_dir, exist_ok=True)
+            vectorstore.save_local(cache_path)
+            print("Successfully created and cached vector store!")
 
 except Exception as e:
     print(f"Warning: Failed to initialize RAG components: {str(e)}")
@@ -491,4 +501,4 @@ async def reset_database():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8080) 
