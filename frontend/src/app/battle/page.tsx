@@ -31,8 +31,9 @@ export default function BattlePage() {
         const data = await response.json();
         setModels(data);
       } catch (error) {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         console.error("Error fetching models:", error);
-        alert("Failed to load models. Please try again later.");
+        alert(`Failed to load models on ${apiUrl}. Please try again later.`);
       }
     };
     
