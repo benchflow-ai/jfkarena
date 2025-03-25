@@ -8,39 +8,14 @@ A platform for comparing different AI models' responses to questions about JFK u
 - Real-time voting system for response evaluation
 - Dynamic leaderboard tracking model performance
 - Support for multiple AI models including:
-  - GPT-4
-  - Claude 3
-  - Gemini Pro
-  - DeepSeek
 - Advanced RAG system using JFK historical documents
 - Modern, responsive UI built with Next.js and Tailwind CSS
 - Real-time data updates using PostgreSQL
-
-## Tech Stack
-
-### Frontend
-- Next.js 14
-- React 18
-- TypeScript
-- Tailwind CSS
-- Radix UI Components
-- Framer Motion
-- DrizzleORM
-
-### Backend
-- FastAPI
-- LangChain
-- FAISS for vector search
-- PostgreSQL
-- SQLAlchemy
-- Python 3.8+
 
 ## Prerequisites
 
 - Node.js 18+ and npm
 - Python 3.8+
-- PostgreSQL database
-- API keys for supported AI models
 
 ## Setup
 
@@ -70,16 +45,16 @@ pip install -r requirements.txt
 
 Frontend (.env):
 ```
-NEXT_PUBLIC_API_URL=your_backend_url
-DATABASE_URL=your_database_url
+NEXT_PUBLIC_API_URL=
+JFK_ARENA_TOKEN=
 ```
 
 Backend (.env):
 ```
-OPENAI_API_KEY=your_openai_key
-ANTHROPIC_API_KEY=your_anthropic_key
-GOOGLE_API_KEY=your_google_key
-DATABASE_URL=your_database_url
+OPENROUTER_API_KEY=
+OPENAI_API_KEY=
+DATABASE_URL=
+JFK_ARENA_TOKEN=
 ```
 
 ## Development
