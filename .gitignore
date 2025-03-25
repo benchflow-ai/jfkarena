@@ -1,0 +1,14 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+.env
+.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.test

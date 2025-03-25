@@ -1,0 +1,11 @@
+fastapi==0.115.12
+uvicorn==0.34.0
+python-dotenv==1.0.1
+langchain==0.1.12
+langchain-community==0.0.24
+langchain-openai==0.0.8
+openai==1.68.2
+anthropic==0.49.0
+python-multipart==0.0.20
+faiss-cpu
+unstructured[md]
