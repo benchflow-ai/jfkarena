@@ -19,7 +19,7 @@ export default function BattlePage() {
   const [models, setModels] = useState<Model[]>([]);
 
   useEffect(() => {
-    // 获取可用模型列表
+    // Get available models list
     const fetchModels = async () => {
       try {
         const response = await fetch("http://localhost:8000/models");
@@ -38,7 +38,7 @@ export default function BattlePage() {
   }, []);
 
   useEffect(() => {
-    // 随机决定显示顺序
+    // Randomly decide display order
     setIsFlipped(Math.random() > 0.5);
   }, [responses]);
 

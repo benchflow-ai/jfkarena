@@ -99,7 +99,21 @@ if not DATABASE_URL:
     raise Exception("DATABASE_URL environment variable is not set")
 
 print(f"Connecting to database: {DATABASE_URL}")
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,  # Automatically check if connection is valid
+    pool_recycle=3600,   # Connection recycle time (1 hour)
+    pool_size=5,         # Connection pool size
+    max_overflow=10,     # Maximum overflow connections
+    pool_timeout=30,     # Connection timeout
+    connect_args={
+        "connect_timeout": 10,  # Connection timeout
+        "keepalives": 1,        # Enable keepalive
+        "keepalives_idle": 30,  # Keepalive idle time
+        "keepalives_interval": 10,  # Keepalive interval
+        "keepalives_count": 5,   # Keepalive retry count
+    }
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create database tables
