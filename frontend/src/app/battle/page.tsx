@@ -22,7 +22,8 @@ export default function BattlePage() {
     // Get available models list
     const fetchModels = async () => {
       try {
-        const response = await fetch("http://localhost:8000/models");
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const response = await fetch(`${apiUrl}/models`);
         if (!response.ok) {
           throw new Error("Failed to fetch models");
         }
@@ -49,7 +50,8 @@ export default function BattlePage() {
     setLoading(true);
     setVoted(false);
     try {
-      const response = await fetch("http://localhost:8000/battle", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${apiUrl}/battle`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,7 +87,8 @@ export default function BattlePage() {
         actualResult = result === "model1" ? "model2" : "model1";
       }
 
-      await fetch("http://localhost:8000/vote", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      await fetch(`${apiUrl}/vote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

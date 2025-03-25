@@ -20,7 +20,8 @@ export default function Leaderboard() {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const response = await fetch("http://localhost:8000/leaderboard");
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const response = await fetch(`${apiUrl}/leaderboard`);
         if (!response.ok) {
           throw new Error("Failed to fetch leaderboard data");
         }
