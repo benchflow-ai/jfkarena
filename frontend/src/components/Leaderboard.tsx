@@ -27,16 +27,28 @@ export default function Leaderboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const authenticate = async () => {
+      try {
+        const authResponse = await fetch('/api/auth');
+        if (!authResponse.ok) {
+          const loginResponse = await fetch('/api/auth', { method: 'POST' });
+          if (!loginResponse.ok) {
+            throw new Error('Failed to authenticate');
+          }
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Authentication failed");
+        return false;
+      }
+      return true;
+    };
+
     const fetchLeaderboard = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/leaderboard`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
+        const isAuthenticated = await authenticate();
+        if (!isAuthenticated) return;
+
+        const response = await fetch('/api/proxy/leaderboard');
         if (!response.ok) {
           throw new Error(`Failed to fetch leaderboard data`);
         }

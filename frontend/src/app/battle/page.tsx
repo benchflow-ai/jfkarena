@@ -22,18 +22,35 @@ export default function BattlePage() {
     model1: null,
     model2: null
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const authenticate = async () => {
+      try {
+        const authResponse = await fetch('/api/auth');
+        if (!authResponse.ok) {
+          const loginResponse = await fetch('/api/auth', { method: 'POST' });
+          if (!loginResponse.ok) {
+            throw new Error('Failed to authenticate');
+          }
+        }
+      } catch (err) {
+        console.error("Authentication error:", err);
+        return false;
+      }
+      return true;
+    };
+
     const fetchModels = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/models`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
+        // 先进行认证
+        const isAuthenticated = await authenticate();
+        if (!isAuthenticated) {
+          setError("Failed to authenticate");
+          return;
+        }
+
+        const response = await fetch('/api/proxy/models');
         if (!response.ok) {
           throw new Error("Failed to fetch models");
         }
@@ -41,7 +58,7 @@ export default function BattlePage() {
         setModels(data);
       } catch (error) {
         console.error("Error fetching models:", error);
-        alert("Failed to load models. Please try again later.");
+        setError("Failed to load models");
       }
     };
     
@@ -79,7 +96,7 @@ export default function BattlePage() {
     const selected = selectRandomModels();
     if (!selected) {
       console.log('Failed to select models');
-      alert("Not enough models available");
+      setError("Not enough models available");
       return;
     }
 
@@ -89,22 +106,19 @@ export default function BattlePage() {
     setVoted(false);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const requestData = {
         model1: selected.model1.id,
         model2: selected.model2.id,
         question: question,
       };
       
-      console.log('Sending request to:', apiUrl);
+      console.log('Sending request to battle endpoint');
       console.log('Request data:', requestData);
       
-      const response = await fetch(`${apiUrl}/battle`, {
+      const response = await fetch('/api/proxy/battle', {
         method: "POST",
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
         },
         body: JSON.stringify(requestData),
       });
@@ -123,9 +137,10 @@ export default function BattlePage() {
       console.log('Response data:', data);
       setResponses(data);
       setIsFlipped(Math.random() > 0.5);
+      setQuestion('');
     } catch (error) {
       console.error("Error details:", error);
-      alert("Failed to get responses. Please check the console for details.");
+      setError("Failed to get responses");
     } finally {
       setLoading(false);
     }
@@ -139,13 +154,10 @@ export default function BattlePage() {
         actualResult = result === "model1" ? "model2" : "model1";
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await fetch(`${apiUrl}/vote`, {
+      const response = await fetch('/api/proxy/vote', {
         method: "POST",
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
         },
         body: JSON.stringify({
           result: actualResult,
@@ -154,10 +166,15 @@ export default function BattlePage() {
           question,
         }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit vote');
+      }
+
       setVoted(true);
     } catch (error) {
       console.error("Error voting:", error);
-      alert("Failed to submit vote. Please try again.");
+      setError("Failed to submit vote");
     }
   };
 
@@ -173,6 +190,11 @@ export default function BattlePage() {
     <div className="container py-10">
       <Header />
       <div className="mt-8 space-y-6 max-w-3xl mx-auto">
+        {error && (
+          <div className="text-destructive text-center p-4">
+            Error: {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="relative">
           <textarea
             value={question}
