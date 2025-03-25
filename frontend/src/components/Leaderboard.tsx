@@ -21,6 +21,7 @@ export default function Leaderboard() {
     const fetchLeaderboard = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        console.log(apiUrl);
         const response = await fetch(`${apiUrl}/leaderboard`);
         if (!response.ok) {
           throw new Error("Failed to fetch leaderboard data");

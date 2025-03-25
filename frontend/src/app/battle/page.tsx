@@ -23,6 +23,7 @@ export default function BattlePage() {
     const fetchModels = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        console.log(apiUrl);
         const response = await fetch(`${apiUrl}/models`);
         if (!response.ok) {
           throw new Error("Failed to fetch models");
@@ -51,6 +52,7 @@ export default function BattlePage() {
     setVoted(false);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      console.log(apiUrl);
       const response = await fetch(`${apiUrl}/battle`, {
         method: "POST",
         headers: {
@@ -81,13 +83,13 @@ export default function BattlePage() {
   const handleVote = async (result: "model1" | "model2" | "draw" | "invalid") => {
     if (voted) return;
     try {
-      // 根据显示顺序转换投票结果
       let actualResult = result;
       if (isFlipped && (result === "model1" || result === "model2")) {
         actualResult = result === "model1" ? "model2" : "model1";
       }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      console.log(apiUrl);
       await fetch(`${apiUrl}/vote`, {
         method: "POST",
         headers: {
@@ -118,7 +120,6 @@ export default function BattlePage() {
     <div className="min-h-screen bg-white">
       <Header />
       
-      {/* 主要内容部分使用较窄的容器，并添加上边距留出标题空间 */}
       <div className="max-w-2xl mx-auto px-4 pt-24 pb-8">
         <div className="space-y-6">
           {/* Model Selection */}
