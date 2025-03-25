@@ -160,25 +160,22 @@ SUPPORTED_MODELS = [
     {"id": "openai/gpt-4-turbo-preview", "name": "GPT-4 Turbo"},
     {"id": "openai/gpt-4", "name": "GPT-4"},
     {"id": "openai/gpt-3.5-turbo", "name": "GPT-3.5 Turbo"},
-    {"id": "google/gemini-2.0-flash-001", "name": "Gemini 2.0 Flash"},
+    {"id": "google/gemini-2.0-flash-exp:free", "name": "Gemini 2.0 Flash"},
     {"id": "google/learnlm-1.5-pro-experimental:free", "name": "Gemini 1.5 Pro"},
     {"id": "qwen/qwen2.5-vl-32b-instruct:free", "name": "qwen2.5-vl-32b-instruct"},
     {"id": "qwen/qwen2.5-vl-72b-instruct:free", "name": "qwen2.5-vl-72b-instruct"},
-    {"id": "x-ai/grok-2-vision-1212", "name": "x-ai-grok-2-vision-1212"},
-    {"id": "x-ai/grok-2-1212", "name": "x-ai-grok-2-1212"},
     # {"id": "anthropic/claude-3.7-sonnet", "name": "Claude 3.7 Sonnet"},
     # {"id": "anthropic/claude-3.5-haiku-20241022:beta", "name": "Claude 3.5 haiku"},
     {"id": "anthropic/claude-3.5-sonnet", "name": "Claude 3.5 sonnet"},
     {"id": "anthropic/claude-3-haiku", "name": "Claude 3 haiku"},
-    {"id": "meta-llama/llama-2-70b-chat", "name": "Llama 2 70B"},
-    {"id": "meta-llama/llama-2-13b-chat", "name": "Llama 2 13B"},
-    {"id": "mistral/mixtral-8x7b", "name": "Mixtral 8x7B"},
-    {"id": "mistral/mistral-medium", "name": "Mistral Medium"},
-    {"id": "mistral/mistral-small", "name": "Mistral Small"},
+    {"id": "nvidia/llama-3.1-nemotron-70b-instruct:free", "name": "Nvidia Llama 3.1 70B"},
+    {"id": "meta-llama/llama-3.3-70b-instruct:free", "name": "Llama 3.3 70B"},
+    {"id": "mistralai/mistral-small-3.1-24b-instruct:free", "name": "Mixtral 3.1 24B"},
+    {"id": "mistralai/mistral-small-24b-instruct-2501:free", "name": "Mistral 3 24B"},
     {"id": "deepseek/deepseek-chat-v3-0324:free", "name": "DeepSeek v3 0324"},
     {"id": "deepseek/deepseek-r1:free", "name": "DeepSeek r1"},
-    {"id": "deepseek/deepseek-coder", "name": "DeepSeek Coder"},
-    {"id": "deepseek/deepseek-chat", "name": "DeepSeek Chat"}
+    {"id": "deepseek/deepseek-r1-distill-llama-70b:free", "name": "DeepSeek r1-distill-llama-70b"},
+    {"id": "deepseek/deepseek-r1-distill-qwen-32b:free", "name": "DeepSeek r1-distill-qwen-32b"},
 ]
 
 # Test database connection
@@ -306,18 +303,44 @@ Question: {question}"""
     }
     
     try:
+        
         response = await client.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
-            json=data
+            json=data,
+            timeout=60.0  # Add timeout
         )
-        response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
+        
+        if not response.is_success:
+            error_content = response.text
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"OpenRouter API error for {model_id}: {error_content}"
+            )
+            
+        response_data = response.json()
+        return response_data["choices"][0]["message"]["content"]
+        
+    except httpx.TimeoutException as e:
+        print(f"Timeout error for {model_id}: {str(e)}")
+        raise HTTPException(
+            status_code=504,
+            detail=f"Request timeout for {model_id}"
+        )
+    except httpx.RequestError as e:
+        print(f"Request error for {model_id}: {str(e)}")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Request failed for {model_id}: {str(e)}"
+        )
     except Exception as e:
-        print(f"Error getting response from {model_id}: {str(e)}")
+        print(f"Unexpected error for {model_id}: {str(e)}")
         if response := getattr(e, 'response', None):
             print(f"Response content: {response.text}")
-        raise HTTPException(status_code=500, detail=f"Failed to get response from {model_id}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get response from {model_id}: {str(e)}"
+        )
 
 @app.get("/models")
 async def get_models():
