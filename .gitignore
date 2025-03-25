@@ -12,3 +12,6 @@ __pycache__
 .env.production.local
 .env.development
 .env.test
+cache/
+data/
+faiss_store/
