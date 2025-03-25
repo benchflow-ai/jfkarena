@@ -20,15 +20,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
           <nav className="border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between h-16">
-                <div className="flex">
-                  <div className="flex items-center">
-                    <Link href="/" className="flex items-center gap-2">
-                      <span className="text-2xl">⚔️</span>
-                      <span className="font-bold text-xl linear-gradient">JFK RAG Battle Arena</span>
-                    </Link>
-                  </div>
+          <div className="max-w-4xl mx-auto px-2 sm:px-2 lg:px-2">
+            <div className="flex justify-between h-16">
+              <div className="flex">
                 </div>
                 <div className="flex items-center gap-4">
                   <Link

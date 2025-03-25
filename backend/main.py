@@ -255,7 +255,7 @@ async def get_model_response(client: httpx.AsyncClient, model_id: str, question:
     headers = {
         "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
         "HTTP-Referer": "https://github.com/OpenRouterStudio/openrouter-py",
-        "X-Title": "AI Battle Arena",
+        "X-Title": "JFK  Battle Arena",
         "Content-Type": "application/json"
     }
     

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Header from '@/components/Header';
 
 interface Model {
   id: string;
@@ -111,171 +112,154 @@ export default function BattlePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="linear-card">
-        <h1 className="text-2xl font-bold mb-6 linear-gradient">AI Battle Arena</h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm text-muted-foreground">Model 1</label>
-              <select
-                value={selectedModel1}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  setSelectedModel1(newValue);
-                  // 如果选择的Model 1与当前的Model 2相同，清空Model 2
-                  if (newValue === selectedModel2) {
-                    setSelectedModel2("");
-                  }
-                }}
-                className="linear-input w-full"
-                required
-              >
-                <option value="">Select Model</option>
-                {models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm text-muted-foreground">Model 2</label>
-              <select
-                value={selectedModel2}
-                onChange={(e) => setSelectedModel2(e.target.value)}
-                className="linear-input w-full"
-                required
-                disabled={!selectedModel1}
-              >
-                <option value="">Select Model</option>
-                {models
-                  .filter(model => model.id !== selectedModel1)
-                  .map((model) => (
+    <div className="min-h-screen bg-white">
+      <Header />
+      
+      {/* 主要内容部分使用较窄的容器，并添加上边距留出标题空间 */}
+      <div className="max-w-2xl mx-auto px-4 pt-24 pb-8">
+        <div className="space-y-6">
+          {/* Model Selection */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700">Select Models</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Model 1</label>
+                <select
+                  value={selectedModel1}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    setSelectedModel1(newValue);
+                    if (newValue === selectedModel2) {
+                      setSelectedModel2("");
+                    }
+                  }}
+                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                >
+                  <option value="">Select a model</option>
+                  {models.map((model) => (
                     <option key={model.id} value={model.id}>
                       {model.name}
                     </option>
                   ))}
-              </select>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Model 2</label>
+                <select
+                  value={selectedModel2}
+                  onChange={(e) => setSelectedModel2(e.target.value)}
+                  disabled={!selectedModel1}
+                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+                >
+                  <option value="">Select a model</option>
+                  {models
+                    .filter((model) => model.id !== selectedModel1)
+                    .map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <label className="block text-sm text-muted-foreground">Question</label>
+
+          {/* Question Input */}
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700">Enter Your Question About JFK Files</h2>
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              className="linear-input min-h-[100px]"
-              placeholder="Enter your question..."
-              required
+              placeholder="Type your question here..."
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 min-h-[120px] resize-y"
             />
           </div>
+
+          {/* Battle Button */}
           <button
-            type="submit"
-            className="linear-button-primary w-full"
-            disabled={loading || !selectedModel1 || !selectedModel2}
+            onClick={handleSubmit}
+            disabled={!selectedModel1 || !selectedModel2 || !question || loading}
+            className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
           >
             {loading ? "Battling..." : "Start Battle"}
           </button>
-        </form>
-      </div>
 
-      {responses && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="linear-card">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-medium linear-gradient">Model A</h3>
-                {voted && (
-                  <span className="text-sm text-muted-foreground">
-                    {models.find(m => m.id === (isFlipped ? selectedModel2 : selectedModel1))?.name}
-                  </span>
-                )}
-              </div>
-              <p className="text-muted-foreground whitespace-pre-wrap mb-4">
-                {getResponseContent("left")}
-              </p>
-            </div>
-            <div className="linear-card">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-medium linear-gradient">Model B</h3>
-                {voted && (
-                  <span className="text-sm text-muted-foreground">
-                    {models.find(m => m.id === (isFlipped ? selectedModel1 : selectedModel2))?.name}
-                  </span>
-                )}
-              </div>
-              <p className="text-muted-foreground whitespace-pre-wrap mb-4">
-                {getResponseContent("right")}
-              </p>
-            </div>
-          </div>
-          
-          {!voted && (
-            <div className="flex gap-4">
-              <button
-                onClick={() => handleVote("model1")}
-                className="linear-button-primary flex-1 py-3"
-                disabled={voted}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <span className="text-xl">🏆</span>
-                  Model A Wins
-                </span>
-              </button>
-              <button
-                onClick={() => handleVote("model2")}
-                className="linear-button-primary flex-1 py-3"
-                disabled={voted}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <span className="text-xl">🏆</span>
-                  Model B Wins
-                </span>
-              </button>
-              <button
-                onClick={() => handleVote("draw")}
-                className="linear-button-secondary flex-1 py-3"
-                disabled={voted}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <span className="text-xl">🤝</span>
-                  Draw
-                </span>
-              </button>
-              <button
-                onClick={() => handleVote("invalid")}
-                className="linear-button-secondary flex-1 py-3"
-                disabled={voted}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <span className="text-xl">❌</span>
-                  Both Invalid
-                </span>
-              </button>
-            </div>
-          )}
-
-          {voted && (
-            <div className="linear-card">
-              <h3 className="text-lg font-medium mb-4 linear-gradient">Results Revealed</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Model A was:</p>
-                  <p className="font-medium">
-                    {models.find(m => m.id === (isFlipped ? selectedModel2 : selectedModel1))?.name}
-                  </p>
+          {/* Responses */}
+          {responses && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-700">Model A</h2>
+                  <div className="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap min-h-[200px]">
+                    {getResponseContent("left")}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Model B was:</p>
-                  <p className="font-medium">
-                    {models.find(m => m.id === (isFlipped ? selectedModel1 : selectedModel2))?.name}
-                  </p>
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-700">Model B</h2>
+                  <div className="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap min-h-[200px]">
+                    {getResponseContent("right")}
+                  </div>
                 </div>
               </div>
+
+              {/* Voting Buttons */}
+              {!voted && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => handleVote("model1")}
+                    disabled={voted}
+                    className="bg-white border border-green-500 text-green-600 py-2 px-4 rounded-lg font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    Model A Wins
+                  </button>
+                  <button
+                    onClick={() => handleVote("model2")}
+                    disabled={voted}
+                    className="bg-white border border-blue-500 text-blue-600 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    Model B Wins
+                  </button>
+                  <button
+                    onClick={() => handleVote("draw")}
+                    disabled={voted}
+                    className="bg-white border border-yellow-500 text-yellow-600 py-2 px-4 rounded-lg font-medium hover:bg-yellow-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    Draw
+                  </button>
+                  <button
+                    onClick={() => handleVote("invalid")}
+                    disabled={voted}
+                    className="bg-white border border-red-500 text-red-600 py-2 px-4 rounded-lg font-medium hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    Invalid
+                  </button>
+                </div>
+              )}
+
+              {/* Results Reveal */}
+              {voted && (
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                  <h3 className="text-xl font-semibold mb-4 text-gray-700">Results Revealed</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Model A was:</p>
+                      <p className="font-medium text-gray-700">
+                        {models.find(m => m.id === (isFlipped ? selectedModel2 : selectedModel1))?.name}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Model B was:</p>
+                      <p className="font-medium text-gray-700">
+                        {models.find(m => m.id === (isFlipped ? selectedModel1 : selectedModel2))?.name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 } 
