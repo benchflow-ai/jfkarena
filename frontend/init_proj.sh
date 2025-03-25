@@ -1,5 +1,5 @@
 # 1. Clone the project (if not already done)
-git clone https://github.com/yourusername/jfkarena.git
+git clone https://github.com/benchflow/jfkarena.git
 cd jfkarena
 
 # 2. Setup Frontend
@@ -20,5 +20,3 @@ cp .env.example .env
 
 # 4. Create JFK files directory
 mkdir -p data/jfk_text
-
-# Put your JFK-related text files in this directory

@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Header from '@/components/Header';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 interface Model {
   id: string;
@@ -19,20 +24,24 @@ export default function BattlePage() {
   const [models, setModels] = useState<Model[]>([]);
 
   useEffect(() => {
-    // Get available models list
     const fetchModels = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/models`);
+        const response = await fetch(`${apiUrl}/models`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch models");
         }
         const data = await response.json();
         setModels(data);
       } catch (error) {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         console.error("Error fetching models:", error);
-        alert(`Failed to load models on ${apiUrl}. Please try again later.`);
+        alert("Failed to load models. Please try again later.");
       }
     };
     
@@ -40,7 +49,6 @@ export default function BattlePage() {
   }, []);
 
   useEffect(() => {
-    // Randomly decide display order
     setIsFlipped(Math.random() > 0.5);
   }, [responses]);
 
@@ -54,8 +62,10 @@ export default function BattlePage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${apiUrl}/battle`, {
         method: "POST",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json"
         },
         body: JSON.stringify({
           model1: selectedModel1,
@@ -65,15 +75,14 @@ export default function BattlePage() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Failed to fetch");
+        throw new Error("Failed to fetch responses");
       }
 
       const data = await response.json();
       setResponses(data);
     } catch (error) {
       console.error("Error:", error);
-      alert(error instanceof Error ? error.message : "An error occurred");
+      alert("Failed to get responses. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,8 +99,10 @@ export default function BattlePage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       await fetch(`${apiUrl}/vote`, {
         method: "POST",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json"
         },
         body: JSON.stringify({
           result: actualResult,
@@ -103,6 +114,7 @@ export default function BattlePage() {
       setVoted(true);
     } catch (error) {
       console.error("Error voting:", error);
+      alert("Failed to submit vote. Please try again.");
     }
   };
 
@@ -115,152 +127,161 @@ export default function BattlePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="container py-10">
       <Header />
-      
-      <div className="max-w-2xl mx-auto px-4 pt-24 pb-8">
-        <div className="space-y-6">
-          {/* Model Selection */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
-            <h2 className="text-xl font-semibold mb-4 text-gray-700">Select Models</h2>
+      <div className="mt-8 space-y-6">
+        <Card className="p-6">
+          <div className="space-y-4">
+            <h2 className="text-lg font-medium">Select Models</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Model 1</label>
-                <select
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Model 1</label>
+                <Select
                   value={selectedModel1}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    setSelectedModel1(newValue);
-                    if (newValue === selectedModel2) {
+                  onValueChange={(value) => {
+                    setSelectedModel1(value);
+                    if (value === selectedModel2) {
                       setSelectedModel2("");
                     }
                   }}
-                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 >
-                  <option value="">Select a model</option>
-                  {models.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Model 2</label>
-                <select
-                  value={selectedModel2}
-                  onChange={(e) => setSelectedModel2(e.target.value)}
-                  disabled={!selectedModel1}
-                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">Select a model</option>
-                  {models
-                    .filter((model) => model.id !== selectedModel1)
-                    .map((model) => (
-                      <option key={model.id} value={model.id}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {models.map((model) => (
+                      <SelectItem key={model.id} value={model.id}>
                         {model.name}
-                      </option>
+                      </SelectItem>
                     ))}
-                </select>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Model 2</label>
+                <Select
+                  value={selectedModel2}
+                  onValueChange={setSelectedModel2}
+                  disabled={!selectedModel1}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {models
+                      .filter((model) => model.id !== selectedModel1)
+                      .map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                          {model.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
+        </Card>
 
-          {/* Question Input */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
-            <h2 className="text-xl font-semibold mb-4 text-gray-700">Enter Your Question About JFK Files</h2>
+        <Card className="p-6">
+          <div className="space-y-4">
+            <h2 className="text-lg font-medium">Enter Your Question</h2>
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Type your question here..."
-              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 min-h-[120px] resize-y"
+              placeholder="Type your question about JFK files here..."
+              className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
+        </Card>
 
-          {/* Battle Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={!selectedModel1 || !selectedModel2 || !question || loading}
-            className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            {loading ? "Battling..." : "Start Battle"}
-          </button>
+        <Button
+          className="w-full"
+          onClick={handleSubmit}
+          disabled={!selectedModel1 || !selectedModel2 || !question || loading}
+        >
+          {loading ? "Getting Responses..." : "Start Battle"}
+        </Button>
 
-          {/* Responses */}
-          {responses && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-700">Model A</h2>
-                  <div className="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap min-h-[200px]">
+        {responses && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-medium">Model A</h2>
+                  <Separator />
+                  <div className="whitespace-pre-wrap text-sm">
                     {getResponseContent("left")}
                   </div>
                 </div>
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-700">Model B</h2>
-                  <div className="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap min-h-[200px]">
+              </Card>
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-medium">Model B</h2>
+                  <Separator />
+                  <div className="whitespace-pre-wrap text-sm">
                     {getResponseContent("right")}
                   </div>
                 </div>
+              </Card>
+            </div>
+
+            {!voted && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => handleVote("model1")}
+                  disabled={voted}
+                >
+                  Model A Wins
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleVote("model2")}
+                  disabled={voted}
+                >
+                  Model B Wins
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleVote("draw")}
+                  disabled={voted}
+                >
+                  Draw
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleVote("invalid")}
+                  disabled={voted}
+                >
+                  Invalid
+                </Button>
               </div>
+            )}
 
-              {/* Voting Buttons */}
-              {!voted && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <button
-                    onClick={() => handleVote("model1")}
-                    disabled={voted}
-                    className="bg-white border border-green-500 text-green-600 py-2 px-4 rounded-lg font-medium hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    Model A Wins
-                  </button>
-                  <button
-                    onClick={() => handleVote("model2")}
-                    disabled={voted}
-                    className="bg-white border border-blue-500 text-blue-600 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    Model B Wins
-                  </button>
-                  <button
-                    onClick={() => handleVote("draw")}
-                    disabled={voted}
-                    className="bg-white border border-yellow-500 text-yellow-600 py-2 px-4 rounded-lg font-medium hover:bg-yellow-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    Draw
-                  </button>
-                  <button
-                    onClick={() => handleVote("invalid")}
-                    disabled={voted}
-                    className="bg-white border border-red-500 text-red-600 py-2 px-4 rounded-lg font-medium hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    Invalid
-                  </button>
-                </div>
-              )}
-
-              {/* Results Reveal */}
-              {voted && (
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-700">Results Revealed</h3>
+            {voted && (
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-medium">Results Revealed</h2>
+                  <Separator />
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">Model A was:</p>
-                      <p className="font-medium text-gray-700">
+                      <p className="text-sm text-muted-foreground">Model A was:</p>
+                      <p className="font-medium">
                         {models.find(m => m.id === (isFlipped ? selectedModel2 : selectedModel1))?.name}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Model B was:</p>
-                      <p className="font-medium text-gray-700">
+                      <p className="text-sm text-muted-foreground">Model B was:</p>
+                      <p className="font-medium">
                         {models.find(m => m.id === (isFlipped ? selectedModel1 : selectedModel2))?.name}
                       </p>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

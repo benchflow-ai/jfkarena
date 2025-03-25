@@ -2,30 +2,45 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { cn } from "@/lib/utils";
 
 export default function Navigation() {
   const pathname = usePathname();
   
   return (
-    <nav className="border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-end h-16">
-          <div className="flex items-center gap-6 pr-16">
+    <nav className="fixed top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 flex">
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="text-xl">⚔️</span>
+            <span className="font-medium">JFK RAG Arena</span>
+          </Link>
+        </div>
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <nav className="flex items-center space-x-6">
             <Link
               href="/battle"
-              className={`flex items-center gap-2 ${pathname === '/battle' ? 'text-blue-500' : 'text-gray-500'} hover:text-blue-500`}
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-primary",
+                pathname === "/battle"
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              )}
             >
-              <span className="text-2xl">⚔️</span>
-              <span>Battle</span>
+              Battle
             </Link>
             <Link
               href="/leaderboard"
-              className={`flex items-center gap-2 ${pathname === '/leaderboard' ? 'text-blue-500' : 'text-gray-500'} hover:text-blue-500`}
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-primary",
+                pathname === "/leaderboard"
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              )}
             >
-              <span className="text-2xl">🏆</span>
-              <span>Leaderboard</span>
+              Leaderboard
             </Link>
-          </div>
+          </nav>
         </div>
       </div>
     </nav>
