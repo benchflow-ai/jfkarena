@@ -24,7 +24,7 @@ export default function Leaderboard() {
         console.log(apiUrl);
         const response = await fetch(`${apiUrl}/leaderboard`);
         if (!response.ok) {
-          throw new Error("Failed to fetch leaderboard data");
+          throw new Error(`Failed to fetch leaderboard data on ${apiUrl}`);
         }
         const data = await response.json();
         setModels(data);
