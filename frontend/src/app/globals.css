@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #fafafa;
+  --accent-foreground: #18181b;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e4e4e7;
+  --input: #fafafa;
+  --primary: #18181b;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --radius: 0.5rem;
+  --ring: rgba(24, 24, 27, 0.2);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.linear-gradient {
+  background: linear-gradient(to bottom right, #4f46e5, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-effect {
+  background: rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.hover-effect {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover-effect:hover {
+  transform: translateY(-1px);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.button-gradient {
+  background: linear-gradient(to right, #4f46e5, #7c3aed);
+  transition: opacity 0.2s ease-in-out;
+}
+
+.button-gradient:hover {
+  opacity: 0.9;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .linear-input {
+    @apply w-full px-4 py-2 bg-accent rounded-md border border-border focus:outline-none focus:ring-2 focus:ring transition-all;
+  }
+  
+  .linear-button {
+    @apply px-4 py-2 rounded-md font-medium transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .linear-button-primary {
+    @apply linear-button button-gradient text-white;
+  }
+  
+  .linear-button-secondary {
+    @apply linear-button bg-secondary text-secondary-foreground hover:bg-opacity-90;
+  }
+  
+  .linear-card {
+    @apply glass-effect rounded-lg p-6 hover-effect;
+  }
+}
