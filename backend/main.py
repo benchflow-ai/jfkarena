@@ -23,7 +23,7 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://arena.benchflow.ai"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -483,21 +483,6 @@ async def get_leaderboard():
             }
             for row in result
         ]
-
-@app.post("/reset_database")
-async def reset_database():
-    with SessionLocal() as db:
-        try:
-            # Delete all existing data
-            db.execute(models.delete())
-            db.commit()
-            
-            # Reinitialize models
-            init_models()
-            return {"status": "success", "message": "Database reset successfully"}
-        except Exception as e:
-            db.rollback()
-            raise HTTPException(status_code=500, detail=f"Failed to reset database: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
