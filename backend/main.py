@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, Literal, Optional
+from typing import Dict
 import os
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
@@ -93,7 +93,7 @@ except Exception as e:
     print("Please ensure the data/jfk_text directory exists and contains .txt files")
     vectorstore = None
 
-# 数据库连接
+# Database connection
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise Exception("DATABASE_URL environment variable is not set")
@@ -102,7 +102,7 @@ print(f"Connecting to database: {DATABASE_URL}")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 创建数据库表
+# Create database tables
 metadata = MetaData()
 
 models = Table(
@@ -130,17 +130,22 @@ battles = Table(
     Column("response2", String)
 )
 
-# 支持的模型列表
+# Supported model list
 SUPPORTED_MODELS = [
+    {"id": "openai/gpt-4o-mini", "name": "GPT-4o Mini"},
     {"id": "openai/gpt-4-turbo-preview", "name": "GPT-4 Turbo"},
     {"id": "openai/gpt-4", "name": "GPT-4"},
     {"id": "openai/gpt-3.5-turbo", "name": "GPT-3.5 Turbo"},
     {"id": "google/gemini-2.0-flash-001", "name": "Gemini 2.0 Flash"},
     {"id": "google/learnlm-1.5-pro-experimental:free", "name": "Gemini 1.5 Pro"},
-    {"id": "anthropic/claude-3-opus-20240229", "name": "Claude 3 Opus"},
-    {"id": "anthropic/claude-3-sonnet-20240229", "name": "Claude 3 Sonnet"},
-    {"id": "anthropic/claude-2", "name": "Claude 2"},
-    {"id": "google/gemini-pro", "name": "Gemini Pro"},
+    {"id": "qwen/qwen2.5-vl-32b-instruct:free", "name": "qwen2.5-vl-32b-instruct"},
+    {"id": "qwen/qwen2.5-vl-72b-instruct:free", "name": "qwen2.5-vl-72b-instruct"},
+    {"id": "x-ai/grok-2-vision-1212", "name": "x-ai-grok-2-vision-1212"},
+    {"id": "x-ai/grok-2-1212", "name": "x-ai-grok-2-1212"},
+    # {"id": "anthropic/claude-3.7-sonnet", "name": "Claude 3.7 Sonnet"},
+    # {"id": "anthropic/claude-3.5-haiku-20241022:beta", "name": "Claude 3.5 haiku"},
+    {"id": "anthropic/claude-3.5-sonnet", "name": "Claude 3.5 sonnet"},
+    {"id": "anthropic/claude-3-haiku", "name": "Claude 3 haiku"},
     {"id": "meta-llama/llama-2-70b-chat", "name": "Llama 2 70B"},
     {"id": "meta-llama/llama-2-13b-chat", "name": "Llama 2 13B"},
     {"id": "mistral/mixtral-8x7b", "name": "Mixtral 8x7B"},
@@ -152,7 +157,7 @@ SUPPORTED_MODELS = [
     {"id": "deepseek/deepseek-chat", "name": "DeepSeek Chat"}
 ]
 
-# 测试数据库连接
+# Test database connection
 def test_db_connection():
     try:
         with engine.connect() as conn:
@@ -163,21 +168,21 @@ def test_db_connection():
         print(f"Error connecting to the database: {str(e)}")
         return False
 
-# 检查表是否存在
+# Check if tables exist
 def check_tables_exist():
     inspector = inspect(engine)
     return "models" in inspector.get_table_names() and "battles" in inspector.get_table_names()
 
-# 初始化数据库中的模型
+# Initialize models in the database
 def init_models():
     with SessionLocal() as db:
         for model in SUPPORTED_MODELS:
-            # 检查模型是否已存在
+            # Check if model exists
             result = db.execute(
                 select(models).where(models.c.model_id == model["id"])
             ).first()
             if not result:
-                # 如果模型不存在，则添加
+                # If model doesn't exist, add it
                 db.execute(
                     models.insert().values(
                         model_id=model["id"],
@@ -191,7 +196,7 @@ def init_models():
                 )
         db.commit()
 
-# 初始化数据库
+# Initialize database
 def initialize_database():
     try:
         if not check_tables_exist():
@@ -207,7 +212,7 @@ def initialize_database():
         print(f"Error initializing database: {str(e)}")
         return False
 
-# 启动时测试连接并初始化数据库（如果需要）
+# Test connection and initialize database at startup (if needed)
 if test_db_connection():
     initialize_database()
 else:
@@ -325,7 +330,7 @@ async def vote(request: dict):
         raise HTTPException(status_code=400, detail="Missing required fields")
     
     with SessionLocal() as db:
-        # 获取两个模型的当前状态
+        # Get current status of both models
         model1 = db.execute(
             select(models).where(models.c.model_id == model1_id)
         ).first()
@@ -336,9 +341,9 @@ async def vote(request: dict):
         if not model1 or not model2:
             raise HTTPException(status_code=404, detail="Model not found")
         
-        # 更新统计数据
+        # Update statistics
         if result == "model1":
-            # 更新胜负场次
+            # Update win/loss counts
             db.execute(
                 models.update()
                 .where(models.c.model_id == model1_id)
@@ -350,7 +355,7 @@ async def vote(request: dict):
                 .values(losses=models.c.losses + 1)
             )
             
-            # 计算新的 ELO 分数
+            # Calculate new ELO scores
             r1 = 10 ** (model1.elo / 400)
             r2 = 10 ** (model2.elo / 400)
             e1 = r1 / (r1 + r2)
@@ -359,7 +364,7 @@ async def vote(request: dict):
             new_elo1 = model1.elo + K_FACTOR * (1 - e1)
             new_elo2 = model2.elo + K_FACTOR * (0 - e2)
             
-            # 更新 ELO 分数
+            # Update ELO scores
             db.execute(
                 models.update()
                 .where(models.c.model_id == model1_id)
@@ -372,7 +377,7 @@ async def vote(request: dict):
             )
             
         elif result == "model2":
-            # 更新胜负场次
+            # Update win/loss counts
             db.execute(
                 models.update()
                 .where(models.c.model_id == model2_id)
@@ -384,7 +389,7 @@ async def vote(request: dict):
                 .values(losses=models.c.losses + 1)
             )
             
-            # 计算新的 ELO 分数
+            # Calculate new ELO scores
             r1 = 10 ** (model1.elo / 400)
             r2 = 10 ** (model2.elo / 400)
             e1 = r1 / (r1 + r2)
@@ -393,7 +398,7 @@ async def vote(request: dict):
             new_elo1 = model1.elo + K_FACTOR * (0 - e1)
             new_elo2 = model2.elo + K_FACTOR * (1 - e2)
             
-            # 更新 ELO 分数
+            # Update ELO scores
             db.execute(
                 models.update()
                 .where(models.c.model_id == model1_id)
@@ -406,7 +411,7 @@ async def vote(request: dict):
             )
             
         elif result == "draw":
-            # 更新平局场次
+            # Update draw counts
             db.execute(
                 models.update()
                 .where(models.c.model_id == model1_id)
@@ -419,7 +424,7 @@ async def vote(request: dict):
             )
             
         elif result == "invalid":
-            # 更新无效场次
+            # Update invalid counts
             db.execute(
                 models.update()
                 .where(models.c.model_id == model1_id)
@@ -437,7 +442,7 @@ async def vote(request: dict):
 @app.get("/leaderboard")
 async def get_leaderboard():
     with SessionLocal() as db:
-        # 按 ELO 分数降序排序获取所有模型
+        # Get all models sorted by ELO score in descending order
         result = db.execute(
             select(models).order_by(models.c.elo.desc())
         ).fetchall()
@@ -459,11 +464,11 @@ async def get_leaderboard():
 async def reset_database():
     with SessionLocal() as db:
         try:
-            # 删除所有现有数据
+            # Delete all existing data
             db.execute(models.delete())
             db.commit()
             
-            # 重新初始化模型
+            # Reinitialize models
             init_models()
             return {"status": "success", "message": "Database reset successfully"}
         except Exception as e:
