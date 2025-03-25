@@ -1,21 +1,24 @@
-# 1. 克隆项目（如果还没有的话）
-git clone <your-repo-url>
+# 1. Clone the project (if not already done)
+git clone https://github.com/yourusername/jfkarena.git
 cd jfkarena
 
-# 2. 设置前端
+# 2. Setup Frontend
 cd frontend
 npm install
-cp .env.example .env
-# 编辑 .env 文件，添加你的 NeonDB 连接字符串
 
-# 3. 设置后端
+# Edit .env file and add your NeonDB connection string
+cp .env.example .env
+
+# 3. Setup Backend
 cd ../backend
 python -m venv venv
-source venv/bin/activate  # 在 Windows 上使用: venv\Scripts\activate
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env
-# 编辑 .env 文件，添加你的 AI 模型 API 密钥
 
-# 4. 创建 JFK 文件目录
-mkdir jfk_files
-# 将你的 JFK 相关文本文件放入这个目录
+# Edit .env file and add your AI model API keys
+cp .env.example .env
+
+# 4. Create JFK files directory
+mkdir -p data/jfk_text
+
+# Put your JFK-related text files in this directory
