@@ -11,9 +11,9 @@ primary_region = "sjc"
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = false   # 禁用自动停止
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1     # 最少运行一台实例
   processes = ["app"]
 
 [[vm]]
