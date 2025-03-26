@@ -53,7 +53,7 @@ try:
     base_dir = os.path.dirname(os.path.abspath(__file__))
     cache_dir = os.path.join(base_dir, "cache")
     cache_path = os.path.join(cache_dir, "faiss_store")
-    data_dir = os.path.join(os.path.dirname(base_dir), "data", "jfk_text")
+    data_dir = os.path.join(base_dir, "data", "jfk_text")
     
     print(f"Cache path: {cache_path}")
     print(f"Data directory: {data_dir}")

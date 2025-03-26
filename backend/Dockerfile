@@ -20,7 +20,10 @@ RUN mkdir -p /app/data/jfk_text && \
     mkdir -p /app/backend/cache && \
     chmod -R 777 /app/data && \
     chmod -R 777 /app/backend/cache
-    
+
+# Copy data files first
+COPY data/jfk_text/ /app/data/jfk_text/
+
 # Copy the rest of the application
 COPY . .
 
