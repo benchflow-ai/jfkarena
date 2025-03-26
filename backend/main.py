@@ -4,6 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Dict
 import os
+import time
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
@@ -11,7 +12,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader
 import httpx
 import json
-from sqlalchemy import create_engine, Column, Integer, String, Float, MetaData, Table, select, func, ForeignKey, inspect
+from sqlalchemy import create_engine, Column, Integer, String, Float, MetaData, Table, select, func, ForeignKey, inspect, DateTime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 
@@ -152,10 +153,13 @@ battles = Table(
     Column("id", Integer, primary_key=True),
     Column("model1_id", Integer, ForeignKey("models.id", ondelete="CASCADE")),
     Column("model2_id", Integer, ForeignKey("models.id", ondelete="CASCADE")),
-    Column("winner_id", Integer, ForeignKey("models.id", ondelete="CASCADE")),
+    Column("winner_id", Integer, ForeignKey("models.id", ondelete="CASCADE"), nullable=True),
     Column("question", String),
     Column("response1", String),
-    Column("response2", String)
+    Column("response2", String),
+    Column("result", String, nullable=True),  # 'model1_win', 'model2_win', 'draw', 'invalid'
+    Column("created_at", DateTime, default=func.now()),  # 使用 DateTime 类型
+    Column("voted_at", DateTime, nullable=True),  # 使用 DateTime 类型
 )
 
 # Supported model list
@@ -196,50 +200,66 @@ def test_db_connection():
 # Check if tables exist
 def check_tables_exist():
     inspector = inspect(engine)
-    return "models" in inspector.get_table_names() and "battles" in inspector.get_table_names()
+    existing_tables = inspector.get_table_names()
+    print(f"Existing tables: {existing_tables}")
+    return "models" in existing_tables and "battles" in existing_tables
 
 # Initialize models in the database
 def init_models():
     with SessionLocal() as db:
-        for model in SUPPORTED_MODELS:
-            # Check if model exists
-            result = db.execute(
-                select(models).where(models.c.model_id == model["id"])
-            ).first()
-            if not result:
-                # If model doesn't exist, add it
-                db.execute(
-                    models.insert().values(
-                        model_id=model["id"],
-                        name=model["name"],
-                        wins=0,
-                        losses=0,
-                        draws=0,
-                        invalid=0,
-                        elo=1500.0
+        try:
+            for model in SUPPORTED_MODELS:
+                # Check if model exists
+                result = db.execute(
+                    select(models).where(models.c.model_id == model["id"])
+                ).first()
+                if not result:
+                    # If model doesn't exist, add it
+                    db.execute(
+                        models.insert().values(
+                            model_id=model["id"],
+                            name=model["name"],
+                            wins=0,
+                            losses=0,
+                            draws=0,
+                            invalid=0,
+                            elo=1500.0
+                        )
                     )
-                )
-        db.commit()
+            db.commit()
+            print("Models initialized successfully!")
+        except Exception as e:
+            print(f"Error initializing models: {str(e)}")
+            db.rollback()
+            raise
 
 # Initialize database
 def initialize_database():
     try:
-        if not check_tables_exist():
-            print("Tables do not exist. Creating tables...")
-            metadata.create_all(bind=engine)
-            print("Tables created successfully!")
-            init_models()
-            print("Models initialized successfully!")
-        else:
-            print("Tables already exist. Skipping initialization.")
+        # Drop existing tables if they exist
+        metadata.drop_all(bind=engine)
+        print("Dropped existing tables")
+        
+        # Create tables
+        metadata.create_all(bind=engine)
+        print("Created new tables")
+        
+        # Initialize models
+        init_models()
         return True
     except Exception as e:
         print(f"Error initializing database: {str(e)}")
         return False
 
-# Test connection and initialize database at startup (if needed)
+# Test connection and initialize database at startup
+print("Starting database initialization...")
 if test_db_connection():
-    initialize_database()
+    if not check_tables_exist():
+        print("Tables do not exist. Creating tables...")
+        if not initialize_database():
+            raise Exception("Failed to initialize database")
+    else:
+        print("Tables already exist. Skipping initialization.")
 else:
     raise Exception("Failed to connect to the database")
 
@@ -362,23 +382,55 @@ async def get_models(token: str = Depends(verify_token)):
 
 @app.post("/battle")
 async def battle(request: dict, token: str = Depends(verify_token)):
-    model1 = request.get("model1")
-    model2 = request.get("model2")
+    model1_id = request.get("model1")
+    model2_id = request.get("model2")
     question = request.get("question")
 
-    if not model1 or not model2 or not question:
+    if not model1_id or not model2_id or not question:
         raise HTTPException(status_code=400, detail="Missing required fields")
 
     async with httpx.AsyncClient() as client:
         try:
-            response1 = await get_model_response(client, model1, question)
-            response2 = await get_model_response(client, model2, question)
+            response1 = await get_model_response(client, model1_id, question)
+            response2 = await get_model_response(client, model2_id, question)
+            
+            # Store battle in database
+            with SessionLocal() as db:
+                # Get model IDs from database
+                model1 = db.execute(
+                    select(models).where(models.c.model_id == model1_id)
+                ).first()
+                model2 = db.execute(
+                    select(models).where(models.c.model_id == model2_id)
+                ).first()
+
+                if not model1 or not model2:
+                    raise HTTPException(status_code=400, detail="Invalid model ID")
+
+                # Create new battle record
+                battle_result = db.execute(
+                    battles.insert().values(
+                        model1_id=model1.id,
+                        model2_id=model2.id,
+                        winner_id=None,
+                        question=question,
+                        response1=response1,
+                        response2=response2,
+                        result=None,
+                        created_at=func.now(),  # 使用 func.now()
+                        voted_at=None
+                    )
+                )
+                db.commit()
+                battle_id = battle_result.inserted_primary_key[0]
             
             return {
+                "battle_id": battle_id,
                 "response1": response1,
                 "response2": response2
             }
         except Exception as e:
+            print(f"Error in battle endpoint: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/vote")
@@ -386,119 +438,150 @@ async def vote(request: dict, token: str = Depends(verify_token)):
     result = request.get("result")
     model1_id = request.get("model1")
     model2_id = request.get("model2")
+    battle_id = request.get("battle_id")
     
-    if not result or not model1_id or not model2_id:
+    if not result or not model1_id or not model2_id or not battle_id:
         raise HTTPException(status_code=400, detail="Missing required fields")
     
     with SessionLocal() as db:
-        # Get current status of both models
-        model1 = db.execute(
-            select(models).where(models.c.model_id == model1_id)
-        ).first()
-        model2 = db.execute(
-            select(models).where(models.c.model_id == model2_id)
-        ).first()
-        
-        if not model1 or not model2:
-            raise HTTPException(status_code=404, detail="Model not found")
-        
-        # Update statistics
-        if result == "model1":
-            # Update win/loss counts
+        try:
+            # Get current status of both models
+            model1 = db.execute(
+                select(models).where(models.c.model_id == model1_id)
+            ).first()
+            model2 = db.execute(
+                select(models).where(models.c.model_id == model2_id)
+            ).first()
+            
+            if not model1 or not model2:
+                raise HTTPException(status_code=404, detail="Model not found")
+            
+            # Update battle record with result
+            battle_result = None
+            winner_id = None
+            if result == "model1":
+                winner_id = model1.id
+                battle_result = "model1_win"
+            elif result == "model2":
+                winner_id = model2.id
+                battle_result = "model2_win"
+            elif result == "draw":
+                battle_result = "draw"
+            else:  # invalid
+                battle_result = "invalid"
+
+            # Update battle record
             db.execute(
-                models.update()
-                .where(models.c.model_id == model1_id)
-                .values(wins=models.c.wins + 1)
-            )
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model2_id)
-                .values(losses=models.c.losses + 1)
+                battles.update()
+                .where(battles.c.id == battle_id)
+                .values(
+                    winner_id=winner_id,
+                    result=battle_result,
+                    voted_at=func.now()  # 使用 func.now()
+                )
             )
             
-            # Calculate new ELO scores
-            r1 = 10 ** (model1.elo / 400)
-            r2 = 10 ** (model2.elo / 400)
-            e1 = r1 / (r1 + r2)
-            e2 = r2 / (r1 + r2)
+            # Update statistics
+            if result == "model1":
+                # Update win/loss counts
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model1_id)
+                    .values(wins=models.c.wins + 1)
+                )
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model2_id)
+                    .values(losses=models.c.losses + 1)
+                )
+                
+                # Calculate new ELO scores
+                r1 = 10 ** (model1.elo / 400)
+                r2 = 10 ** (model2.elo / 400)
+                e1 = r1 / (r1 + r2)
+                e2 = r2 / (r1 + r2)
+                
+                new_elo1 = model1.elo + K_FACTOR * (1 - e1)
+                new_elo2 = model2.elo + K_FACTOR * (0 - e2)
+                
+                # Update ELO scores
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model1_id)
+                    .values(elo=new_elo1)
+                )
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model2_id)
+                    .values(elo=new_elo2)
+                )
+                
+            elif result == "model2":
+                # Update win/loss counts
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model2_id)
+                    .values(wins=models.c.wins + 1)
+                )
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model1_id)
+                    .values(losses=models.c.losses + 1)
+                )
+                
+                # Calculate new ELO scores
+                r1 = 10 ** (model1.elo / 400)
+                r2 = 10 ** (model2.elo / 400)
+                e1 = r1 / (r1 + r2)
+                e2 = r2 / (r1 + r2)
+                
+                new_elo1 = model1.elo + K_FACTOR * (0 - e1)
+                new_elo2 = model2.elo + K_FACTOR * (1 - e2)
+                
+                # Update ELO scores
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model1_id)
+                    .values(elo=new_elo1)
+                )
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model2_id)
+                    .values(elo=new_elo2)
+                )
+                
+            elif result == "draw":
+                # Update draw counts
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model1_id)
+                    .values(draws=models.c.draws + 1)
+                )
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model2_id)
+                    .values(draws=models.c.draws + 1)
+                )
+                
+            elif result == "invalid":
+                # Update invalid counts
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model1_id)
+                    .values(invalid=models.c.invalid + 1)
+                )
+                db.execute(
+                    models.update()
+                    .where(models.c.model_id == model2_id)
+                    .values(invalid=models.c.invalid + 1)
+                )
             
-            new_elo1 = model1.elo + K_FACTOR * (1 - e1)
-            new_elo2 = model2.elo + K_FACTOR * (0 - e2)
-            
-            # Update ELO scores
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model1_id)
-                .values(elo=new_elo1)
-            )
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model2_id)
-                .values(elo=new_elo2)
-            )
-            
-        elif result == "model2":
-            # Update win/loss counts
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model2_id)
-                .values(wins=models.c.wins + 1)
-            )
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model1_id)
-                .values(losses=models.c.losses + 1)
-            )
-            
-            # Calculate new ELO scores
-            r1 = 10 ** (model1.elo / 400)
-            r2 = 10 ** (model2.elo / 400)
-            e1 = r1 / (r1 + r2)
-            e2 = r2 / (r1 + r2)
-            
-            new_elo1 = model1.elo + K_FACTOR * (0 - e1)
-            new_elo2 = model2.elo + K_FACTOR * (1 - e2)
-            
-            # Update ELO scores
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model1_id)
-                .values(elo=new_elo1)
-            )
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model2_id)
-                .values(elo=new_elo2)
-            )
-            
-        elif result == "draw":
-            # Update draw counts
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model1_id)
-                .values(draws=models.c.draws + 1)
-            )
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model2_id)
-                .values(draws=models.c.draws + 1)
-            )
-            
-        elif result == "invalid":
-            # Update invalid counts
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model1_id)
-                .values(invalid=models.c.invalid + 1)
-            )
-            db.execute(
-                models.update()
-                .where(models.c.model_id == model2_id)
-                .values(invalid=models.c.invalid + 1)
-            )
-        
-        db.commit()
-        return {"status": "success"}
+            db.commit()
+            return {"status": "success"}
+        except Exception as e:
+            print(f"Error in vote endpoint: {str(e)}")
+            db.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/leaderboard")
 async def get_leaderboard(token: str = Depends(verify_token)):
@@ -523,4 +606,4 @@ async def get_leaderboard(token: str = Depends(verify_token)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080) 
+    uvicorn.run(app, host="0.0.0.0", port=8000) 

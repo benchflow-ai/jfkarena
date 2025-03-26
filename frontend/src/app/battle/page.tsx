@@ -18,6 +18,7 @@ export default function BattlePage() {
   const [voted, setVoted] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
+  const [battleId, setBattleId] = useState<number | null>(null);
   const [selectedModels, setSelectedModels] = useState<{model1: Model | null, model2: Model | null}>({
     model1: null,
     model2: null
@@ -136,6 +137,7 @@ export default function BattlePage() {
       const data = await response.json();
       console.log('Response data:', data);
       setResponses(data);
+      setBattleId(data.battle_id);
       setIsFlipped(Math.random() > 0.5);
       setQuestion('');
     } catch (error) {
@@ -147,7 +149,7 @@ export default function BattlePage() {
   };
 
   const handleVote = async (result: "model1" | "model2" | "draw" | "invalid") => {
-    if (voted || !selectedModels.model1 || !selectedModels.model2) return;
+    if (voted || !selectedModels.model1 || !selectedModels.model2 || !battleId) return;
     try {
       let actualResult = result;
       if (isFlipped && (result === "model1" || result === "model2")) {
@@ -163,6 +165,7 @@ export default function BattlePage() {
           result: actualResult,
           model1: selectedModels.model1.id,
           model2: selectedModels.model2.id,
+          battle_id: battleId,
           question,
         }),
       });
