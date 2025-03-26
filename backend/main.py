@@ -82,7 +82,7 @@ try:
             print("Creating empty data directory...")
             os.makedirs(data_dir, exist_ok=True)
             
-        loader = DirectoryLoader(data_dir, glob="**/*.txt", show_progress=True)
+        loader = DirectoryLoader(data_dir, glob="**/*.md", show_progress=True)
         print(f"Loading documents from {data_dir}...")
         documents = loader.load()
         print(f"Loaded {len(documents)} documents")
@@ -112,7 +112,7 @@ try:
 
 except Exception as e:
     print(f"Warning: Failed to initialize RAG components: {str(e)}")
-    print("Please ensure the data/jfk_text directory exists and contains .txt files")
+    print("Please ensure the data/jfk_text directory exists and contains .md files")
     vectorstore = None
 
 # Database connection
