@@ -5,11 +5,16 @@ import Header from '@/components/Header';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 
 interface Model {
   id: string;
   name: string;
 }
+
+const MAX_TOKENS = 100;
+const APPROX_CHARS_PER_TOKEN = 4; // Rough approximation
+const MAX_CHARS = MAX_TOKENS * APPROX_CHARS_PER_TOKEN;
 
 export default function BattlePage() {
   const [question, setQuestion] = useState("");
@@ -24,6 +29,7 @@ export default function BattlePage() {
     model2: null
   });
   const [error, setError] = useState<string | null>(null);
+  const [charCount, setCharCount] = useState(0);
 
   useEffect(() => {
     const authenticate = async () => {
@@ -44,7 +50,7 @@ export default function BattlePage() {
 
     const fetchModels = async () => {
       try {
-        // 先进行认证
+        // Authenticate before fetching models
         const isAuthenticated = await authenticate();
         if (!isAuthenticated) {
           setError("Failed to authenticate");
@@ -67,7 +73,6 @@ export default function BattlePage() {
   }, []);
 
   const selectRandomModels = () => {
-    console.log('Selecting random models from:', models);
     if (models.length < 2) {
       console.log('Not enough models available');
       return null;
@@ -81,28 +86,22 @@ export default function BattlePage() {
     const model2Index = Math.floor(Math.random() * availableModels.length);
     const model2 = availableModels[model2Index];
     
-    console.log('Selected models:', { model1, model2 });
     return { model1, model2 };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('handleSubmit called');
     e.preventDefault();
     if (!question) {
-      console.log('No question provided');
       return;
     }
     
-    console.log('Selecting random models...');
     const selected = selectRandomModels();
     if (!selected) {
-      console.log('Failed to select models');
       setError("Not enough models available");
       return;
     }
 
     setSelectedModels(selected);
-    console.log('Models selected:', selected);
     setLoading(true);
     setVoted(false);
 
@@ -112,9 +111,6 @@ export default function BattlePage() {
         model2: selected.model2.id,
         question: question,
       };
-      
-      console.log('Sending request to battle endpoint');
-      console.log('Request data:', requestData);
       
       const response = await fetch('/api/proxy/battle', {
         method: "POST",
@@ -135,11 +131,11 @@ export default function BattlePage() {
       }
 
       const data = await response.json();
-      console.log('Response data:', data);
       setResponses(data);
       setBattleId(data.battle_id);
       setIsFlipped(Math.random() > 0.5);
       setQuestion('');
+      setCharCount(0);
     } catch (error) {
       console.error("Error details:", error);
       setError("Failed to get responses");
@@ -189,6 +185,25 @@ export default function BattlePage() {
       (isLeft ? responses.response1 : responses.response2);
   };
 
+  const estimateTokens = (text: string): number => {
+    // Simple estimation: roughly 4 characters per token
+    return Math.ceil(text.length / APPROX_CHARS_PER_TOKEN);
+  };
+
+  const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    const newCharCount = newText.length;
+    const estimatedTokens = estimateTokens(newText);
+    
+    if (estimatedTokens <= MAX_TOKENS) {
+      setQuestion(newText);
+      setCharCount(newCharCount);
+      setError(null);
+    } else {
+      setError("Question is too long. Please shorten it.");
+    }
+  };
+
   return (
     <div className="container py-10">
       <Header />
@@ -201,15 +216,25 @@ export default function BattlePage() {
         <form onSubmit={handleSubmit} className="relative">
           <textarea
             value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Send your question about JFK files here."
-            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-300 min-h-[100px] pr-24"
+            onChange={handleQuestionChange}
+            placeholder="Ask a question about the JFK files..."
+            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-300 min-h-[100px] pr-24 pb-10"
+            maxLength={MAX_CHARS}
           />
+          <div className="absolute bottom-3 left-3 flex items-center gap-3 bg-white px-1">
+            <div className="text-xs text-zinc-500">
+              ~{estimateTokens(question)}/{MAX_TOKENS} tokens
+            </div>
+            <Progress 
+              value={(estimateTokens(question) / MAX_TOKENS) * 100} 
+              className="w-20 h-1"
+            />
+          </div>
           <Button
             type="submit"
             size="sm"
             className="absolute bottom-3 right-3"
-            disabled={!question || loading}
+            disabled={!question || loading || estimateTokens(question) > MAX_TOKENS}
           >
             {loading ? (
               <span className="flex items-center gap-1">

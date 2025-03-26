@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from typing import Dict
 import os
 import time
@@ -12,6 +12,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader
 import httpx
 import json
+import tiktoken
 from sqlalchemy import create_engine, Column, Integer, String, Float, MetaData, Table, select, func, ForeignKey, inspect, DateTime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
@@ -24,6 +25,12 @@ app = FastAPI()
 
 # Initialize security
 security = HTTPBearer()
+
+# Initialize tokenizer for length checks
+tokenizer = tiktoken.get_encoding("cl100k_base")
+
+def count_tokens(text: str) -> int:
+    return len(tokenizer.encode(text))
 
 # Configure CORS
 app.add_middleware(
@@ -46,7 +53,7 @@ try:
     base_dir = os.path.dirname(os.path.abspath(__file__))
     cache_dir = os.path.join(base_dir, "cache")
     cache_path = os.path.join(cache_dir, "faiss_store")
-    data_dir = os.path.join(os.path.dirname(os.path.dirname(base_dir)), "data", "jfk_text")
+    data_dir = os.path.join(os.path.dirname(base_dir), "data", "jfk_text")
     
     print(f"Cache path: {cache_path}")
     print(f"Data directory: {data_dir}")
@@ -158,8 +165,8 @@ battles = Table(
     Column("response1", String),
     Column("response2", String),
     Column("result", String, nullable=True),  # 'model1_win', 'model2_win', 'draw', 'invalid'
-    Column("created_at", DateTime, default=func.now()),  # 使用 DateTime 类型
-    Column("voted_at", DateTime, nullable=True),  # 使用 DateTime 类型
+    Column("created_at", DateTime, default=func.now()),
+    Column("voted_at", DateTime, nullable=True),
 )
 
 # Supported model list
@@ -277,6 +284,13 @@ class BattleRequest(BaseModel):
     model2: str
     question: str
 
+    @validator("question")
+    def validate_question_length(cls, v):
+        tokens = count_tokens(v)
+        if tokens > 500:
+            raise ValueError(f"Question exceeds 500 tokens (current: {tokens})")
+        return v
+
 class VoteRequest(BaseModel):
     result: str  # "model1", "model2", "draw", "invalid"
     model1: str
@@ -300,13 +314,15 @@ async def get_model_response(client: httpx.AsyncClient, model_id: str, question:
     headers = {
         "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
         "HTTP-Referer": "https://github.com/OpenRouterStudio/openrouter-py",
-        "X-Title": "JFK  Battle Arena",
+        "X-Title": "JFK Battle Arena",
         "Content-Type": "application/json"
     }
     
     system_prompt = """You are an AI assistant participating in a battle arena. Your task is to provide the most helpful, accurate, and well-reasoned response to the user's question.
     
-If relevant context is provided, use it to inform your response, but do not simply repeat the context. Synthesize the information and provide a thoughtful answer."""
+If relevant context is provided, use it to inform your response, but do not simply repeat the context. Synthesize the information and provide a thoughtful answer.
+
+Important: Your response must not exceed 2000 tokens."""
 
     user_prompt = f"""Context: {context}
 
@@ -323,16 +339,16 @@ Question: {question}"""
                 "role": "user",
                 "content": user_prompt
             }
-        ]
+        ],
+        "max_tokens": 2000
     }
     
     try:
-        
         response = await client.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
             json=data,
-            timeout=60.0  # Add timeout
+            timeout=60.0
         )
         
         if not response.is_success:
@@ -343,7 +359,13 @@ Question: {question}"""
             )
             
         response_data = response.json()
-        return response_data["choices"][0]["message"]["content"]
+        response_text = response_data["choices"][0]["message"]["content"]
+        
+        # Check response length
+        if count_tokens(response_text) > 2000:
+            response_text = response_text[:response_text.rindex(" ", 0, 2000)] + "..."
+            
+        return response_text
         
     except httpx.TimeoutException as e:
         print(f"Timeout error for {model_id}: {str(e)}")
@@ -417,7 +439,7 @@ async def battle(request: dict, token: str = Depends(verify_token)):
                         response1=response1,
                         response2=response2,
                         result=None,
-                        created_at=func.now(),  # 使用 func.now()
+                        created_at=func.now(),  # Use func.now() for timestamp
                         voted_at=None
                     )
                 )
@@ -477,7 +499,7 @@ async def vote(request: dict, token: str = Depends(verify_token)):
                 .values(
                     winner_id=winner_id,
                     result=battle_result,
-                    voted_at=func.now()  # 使用 func.now()
+                    voted_at=func.now()  # Use func.now() for timestamp
                 )
             )
             
