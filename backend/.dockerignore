@@ -42,6 +42,3 @@ ENV/
 # Cache
 .cache/
 cache/
-
-# Data
-data/ 
