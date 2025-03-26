@@ -134,8 +134,6 @@ export default function BattlePage() {
       setResponses(data);
       setBattleId(data.battle_id);
       setIsFlipped(Math.random() > 0.5);
-      setQuestion('');
-      setCharCount(0);
     } catch (error) {
       console.error("Error details:", error);
       setError("Failed to get responses");
