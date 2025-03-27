@@ -1,8 +1,6 @@
 'use client'
-import { QuestionCarousel, QUESTIONS } from '@/components/QuestionTemplates'
+import { QuestionCarousel } from '@/components/QuestionTemplates'
 import { Button } from '@/components/ui/button'
-import { isBrowser } from '@/lib/utils'
-import dynamic from 'next/dynamic'
 import { useEffect } from 'react'
 
 import { useForm } from 'react-hook-form'

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable node/prefer-global/process */
 import { db } from '@/db'
 import { betterAuth } from 'better-auth'
@@ -20,5 +21,7 @@ export const auth = betterAuth({
   },
   plugins: [anonymous({ async  onLinkAccount({ anonymousUser, newUser }) {
     // LINK DATA
+    console.log('🚀 ~ onLinkAccount ~ anonymousUser:', anonymousUser)
+    console.log('🚀 ~ onLinkAccount ~ newUser:', newUser)
   } })],
 })
