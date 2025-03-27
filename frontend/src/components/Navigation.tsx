@@ -23,7 +23,7 @@ export default function Navigation() {
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <nav className="flex items-center space-x-6">
+          <nav className="flex items-center space-x-6 mr-4">
             <Link
               href="/battle"
               className={cn(
