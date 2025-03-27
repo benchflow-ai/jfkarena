@@ -12,6 +12,16 @@ const nextConfig = {
       fullUrl: false,
     },
   },
+
+  async rewrites() {
+    return [
+      {
+        source: '/api/proxy/:path*',
+        // eslint-disable-next-line node/prefer-global/process
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+      },
+    ]
+  },
   headers: async () => {
     return [
       {
