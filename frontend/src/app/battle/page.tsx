@@ -218,6 +218,14 @@ export default function BattlePage() {
             placeholder="Ask a question about the JFK files..."
             className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-300 min-h-[100px] pr-24 pb-10"
             maxLength={MAX_CHARS}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (question && !loading && estimateTokens(question) <= MAX_TOKENS) {
+                  handleSubmit(e as unknown as React.FormEvent);
+                }
+              }
+            }}
           />
           <div className="absolute bottom-3 left-3 flex items-center gap-3 bg-white px-1">
             <div className="text-xs text-zinc-500">
