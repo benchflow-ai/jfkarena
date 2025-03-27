@@ -57,6 +57,7 @@ export const voteAction = authorizedActionClient.schema(z.object({
       // Update battle record
       await tx.update(battles)
         .set({
+          userId,
           winnerId,
           result: battleResult,
           votedAt: new Date().toISOString(),

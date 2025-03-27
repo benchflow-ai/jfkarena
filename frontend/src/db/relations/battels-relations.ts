@@ -1,8 +1,14 @@
 import { relations } from 'drizzle-orm/relations'
+import { user } from '../schema/auth'
 import { battles } from '../schema/battles'
 import { models } from '../schema/models'
 
 export const battlesRelations = relations(battles, ({ one }) => ({
+  user: one(user, {
+    fields: [battles.userId],
+    references: [user.id],
+    relationName: 'battles_userId_user_id',
+  }),
   model_model1Id: one(models, {
     fields: [battles.model1Id],
     references: [models.id],

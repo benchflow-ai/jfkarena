@@ -1,16 +1,15 @@
 'use client'
 
+import type { VoteResult } from './types'
 import Header from '@/components/Header'
+import { useAction } from 'next-safe-action/hooks'
+import { voteAction } from '../leaderboard/actions/voteAction'
 import { BattleForm } from './BattleForm'
 import { BattleResponses } from './BattleResponses'
 import { useAuth } from './hooks/useAuth'
 import { useBattle } from './hooks/useBattle'
-import { useVoting } from './hooks/useVoting'
 import { ResultsCard } from './ResultsCard'
 import { VotingSection } from './VotingSection'
-import { useAction } from "next-safe-action/hooks";
-import { voteAction } from '../leaderboard/actions/voteAction'
-import type { VoteResult } from './types'
 
 export function Battle() {
   const { models, error: authError } = useAuth()
