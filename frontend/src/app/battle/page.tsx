@@ -236,10 +236,13 @@ export default function BattlePage() {
               className="w-20 h-1"
             />
           </div>
+          <div className="absolute bottom-3 right-3 flex items-center gap-3">
+          <div className="text-xs text-zinc-500">
+            Shift + Enter for new line
+          </div>
           <Button
             type="submit"
             size="sm"
-            className="absolute bottom-3 right-3"
             disabled={!question || loading || estimateTokens(question) > MAX_TOKENS}
           >
             {loading ? (
@@ -251,6 +254,7 @@ export default function BattlePage() {
               "Send"
             )}
           </Button>
+          </div>
         </form>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
