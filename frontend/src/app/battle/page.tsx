@@ -211,7 +211,9 @@ export default function BattlePage() {
     }
   }
 
-  const handleQuestionClick = (question: string) => {}
+  const handleQuestionClick = (question: string) => {
+    setQuestion(question)
+  }
 
   return (
     <div className="container py-10">

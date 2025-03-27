@@ -1,6 +1,5 @@
 import Autoplay from 'embla-carousel-auto-scroll'
 import useEmblaCarousel from 'embla-carousel-react'
-import { useState } from 'react'
 
 const QUESTIONS = [
   {
@@ -45,17 +44,15 @@ const QUESTIONS = [
   },
 ]
 
-interface QuestionCarouselProps {
-  onQuestionClick: (question: typeof QUESTIONS[0]) => void
-}
-
 const AUTOPLAY_OPTIONS = {
   speed: 0.5,
   stopOnMouseEnter: false,
   stopOnInteraction: false,
 } satisfies Parameters<typeof Autoplay>[0]
 
-export function QuestionCarousel({ onQuestionClick }: QuestionCarouselProps) {
+export function QuestionCarousel({ onQuestionClick }: {
+  onQuestionClick: (question: string) => void
+}) {
   const [rowRef, api] = useEmblaCarousel({
     loop: true,
     dragFree: true,
@@ -71,11 +68,11 @@ export function QuestionCarousel({ onQuestionClick }: QuestionCarouselProps) {
             <div
               className="mr-2"
               key={question.title}
-              onClick={() => onQuestionClick(question)}
+              onClick={() => onQuestionClick(question.content)}
               onMouseEnter={() => autoplay?.stop()}
               onMouseLeave={() => autoplay?.play()}
             >
-              <button type="button" className="flex items-center px-4 py-2 border border-zinc-200 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+              <button type="button" className="flex items-center px-4 py-2 border border-zinc-200 hover:border-slate-700 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
                 <span className="text-sm font-medium whitespace-nowrap">{question.title}</span>
               </button>
             </div>
