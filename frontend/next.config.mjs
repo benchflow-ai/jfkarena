@@ -39,11 +39,11 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://openrouter.ai/api/ https://vercel.live;"
-          }
+            value: 'default-src \'self\'; script-src \'self\' \'unsafe-eval\' \'unsafe-inline\' https://vercel.live; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: https:; font-src \'self\' data:; connect-src \'self\' https://openrouter.ai/api/ https://vercel.live;',
+          },
         ],
       },
-    ];
+    ]
   },
   experimental: {
     optimizePackageImports: ['@radix-ui/react-progress', '@radix-ui/react-select', '@radix-ui/react-separator', '@radix-ui/react-slot', '@radix-ui/react-tabs'],
@@ -60,6 +60,6 @@ const nextConfig = {
       responseLimit: '60s',
     },
   },
-};
+}
 
-export default nextConfig; 
+export default nextConfig

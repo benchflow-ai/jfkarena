@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -8,76 +8,82 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
+} from '@/components/ui/table'
+import { useEffect, useState } from 'react'
 
 interface ModelStats {
-  id: string;
-  name: string;
-  wins: number;
-  losses: number;
-  draws: number;
-  invalid: number;
-  elo: number;
+  id: string
+  name: string
+  wins: number
+  losses: number
+  draws: number
+  invalid: number
+  elo: number
 }
 
 export default function Leaderboard() {
-  const [models, setModels] = useState<ModelStats[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [models, setModels] = useState<ModelStats[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const authenticate = async () => {
       try {
-        const authResponse = await fetch('/api/auth');
+        const authResponse = await fetch('/api/auth')
         if (!authResponse.ok) {
-          const loginResponse = await fetch('/api/auth', { method: 'POST' });
+          const loginResponse = await fetch('/api/auth', { method: 'POST' })
           if (!loginResponse.ok) {
-            throw new Error('Failed to authenticate');
+            throw new Error('Failed to authenticate')
           }
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Authentication failed");
-        return false;
       }
-      return true;
-    };
+      catch (err) {
+        setError(err instanceof Error ? err.message : 'Authentication failed')
+        return false
+      }
+      return true
+    }
 
     const fetchLeaderboard = async () => {
       try {
-        const isAuthenticated = await authenticate();
-        if (!isAuthenticated) return;
+        const isAuthenticated = await authenticate()
+        if (!isAuthenticated)
+          return
 
-        const response = await fetch('/api/proxy/leaderboard');
+        const response = await fetch('/api/proxy/leaderboard')
         if (!response.ok) {
-          throw new Error(`Failed to fetch leaderboard data`);
+          throw new Error(`Failed to fetch leaderboard data`)
         }
-        const data = await response.json();
-        setModels(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
+        const data = await response.json()
+        setModels(data)
       }
-    };
+      catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      }
+      finally {
+        setLoading(false)
+      }
+    }
 
-    fetchLeaderboard();
-  }, []);
+    fetchLeaderboard()
+  }, [])
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   if (error) {
     return (
       <div className="text-destructive text-center p-4">
-        Error: {error}
+        Error:
+        {' '}
+        {error}
       </div>
-    );
+    )
   }
 
   return (
@@ -109,5 +115,5 @@ export default function Leaderboard() {
         </TableBody>
       </Table>
     </Card>
-  );
-} 
+  )
+}
