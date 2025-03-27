@@ -17,6 +17,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.41.0",
+    "jotai": "^2.12.2",
     "lucide-react": "^0.484.0",
     "motion": "^12.6.2",
     "next": "^15.2.4",
@@ -26,16 +27,17 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^4.11.0",
+    "@eslint-react/eslint-plugin": "^1.37.3",
+    "@eslint/eslintrc": "^3.3.1",
+    "@next/eslint-plugin-next": "^15.2.3",
     "@types/node": "^20.17.28",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "@zolplay/prettier-config": "2.0.0-beta.15",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.23.0",
     "eslint-config-next": "^14.2.26",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.2",
-    "@zolplay/prettier-config": "2.0.0-beta.15",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-prettier": "^5.2.4",
@@ -43,11 +45,10 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "eslint-plugin-svg-jsx": "^1.2.4",
     "eslint-plugin-tailwindcss": "^3.18.0",
-    "@next/eslint-plugin-next": "^15.2.3",
-    "@eslint/eslintrc": "^3.3.1",
-    "@antfu/eslint-config": "^4.11.0",
+    "postcss": "^8.5.3",
     "prettier": "^3.5.3",
-    "@eslint-react/eslint-plugin": "^1.37.3"
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.2"
   },
   "packageManager": "pnpm@10.7.0"
 }
