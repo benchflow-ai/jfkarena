@@ -49,7 +49,7 @@ export default function Navigation() {
           </nav>
           {!isPending && (
             <>
-              {session?.user.id
+              {session?.user.id && !session.user.isAnonymous
                 ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger>
