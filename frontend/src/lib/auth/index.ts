@@ -1,8 +1,8 @@
 /* eslint-disable node/prefer-global/process */
 import { db } from '@/db'
 import { betterAuth } from 'better-auth'
-
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { anonymous } from 'better-auth/plugins'
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: 'pg' }),
@@ -18,4 +18,7 @@ export const auth = betterAuth({
       prompt: 'select_account',
     },
   },
+  plugins: [anonymous({ async  onLinkAccount({ anonymousUser, newUser }) {
+    // LINK DATA
+  } })],
 })
