@@ -3,7 +3,7 @@ import { authClient } from './auth/authClient'
 
 export const actionClient = createSafeActionClient()
 
-export const authorizedActionClient = actionClient.use(async ({ next, clientInput, metadata }) => {
+export const authorizedActionClient = actionClient.use(async ({ next }) => {
   const session = (await authClient.getSession()).data
   if (!session?.user.id)
     throw new Error('Unauthorized')

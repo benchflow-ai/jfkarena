@@ -4,8 +4,8 @@ import { db } from '@/db'
 import { battles } from '@/db/schema/battles'
 import { models } from '@/db/schema/models'
 import { authorizedActionClient } from '@/lib/safe-action'
-import { z } from 'better-auth'
 import { eq, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 const DEFAULT_ELO = 1500
 
