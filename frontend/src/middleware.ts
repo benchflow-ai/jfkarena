@@ -12,6 +12,7 @@ export function middleware(request: NextRequest) {
     }
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('Authorization', `Bearer ${sessionToken.value}`)
+    requestHeaders.set('Content-Type', 'application/json')
 
     const nextUrl = new URL(pathname.replace('/api/proxy/', ''), API_URL)
     // eslint-disable-next-line no-console
