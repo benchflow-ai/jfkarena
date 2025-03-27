@@ -1,1 +1,1 @@
-export * from './Battle'
+export * from './battle'
