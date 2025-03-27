@@ -1,7 +1,7 @@
 import Autoplay from 'embla-carousel-auto-scroll'
 import useEmblaCarousel from 'embla-carousel-react'
 
-const QUESTIONS = [
+export const QUESTIONS = [
   {
     title: 'Oswald\'s Lone Gunman Theory',
     content: 'Did Lee Harvey Oswald act alone in the assassination of President Kennedy, as concluded by the Warren Commission1?',

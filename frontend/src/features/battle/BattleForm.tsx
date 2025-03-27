@@ -1,5 +1,10 @@
-import { QuestionCarousel } from '@/components/QuestionTemplates'
+'use client'
+import { QuestionCarousel, QUESTIONS } from '@/components/QuestionTemplates'
 import { Button } from '@/components/ui/button'
+import { isBrowser } from '@/lib/utils'
+import dynamic from 'next/dynamic'
+import { useEffect } from 'react'
+
 import { useForm } from 'react-hook-form'
 import { TokenProgress } from './components/TokenProgress'
 import { APPROX_CHARS_PER_TOKEN, MAX_CHARS, MAX_TOKENS } from './constants'
@@ -13,6 +18,7 @@ interface FormValues {
   question: string
 }
 
+const CACHE_KEY = 'BATTLE_QUESTION'
 export function BattleForm({ onSubmit, loading }: BattleFormProps) {
   const {
     register,
@@ -28,6 +34,16 @@ export function BattleForm({ onSubmit, loading }: BattleFormProps) {
 
   const question = watch('question')
   const estimatedTokens = Math.ceil(question.length / APPROX_CHARS_PER_TOKEN)
+
+  useEffect(() => {
+    const cachedQuestion = localStorage.getItem(CACHE_KEY)
+    if (cachedQuestion)
+      setValue('question', cachedQuestion)
+  }, [setValue])
+
+  useEffect(() => {
+    localStorage.setItem(CACHE_KEY, question)
+  }, [question])
 
   const handleQuestionClick = (question: string) => {
     setValue('question', question)
