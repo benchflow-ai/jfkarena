@@ -1,11 +1,11 @@
 'use server'
 
+import { db } from '@/db'
+import { battles } from '@/db/schema/battles'
+import { models } from '@/db/schema/models'
 import { authorizedActionClient } from '@/lib/safe-action'
 import { z } from 'better-auth'
-import { db } from '@/db'
 import { eq, sql } from 'drizzle-orm'
-import { models } from '@/db/schema/models'
-import { battles } from '@/db/schema/battles'
 
 const DEFAULT_ELO = 1500
 
@@ -16,17 +16,18 @@ export const voteAction = authorizedActionClient.schema(z.object({
   battleId: z.number(),
   question: z.string(),
 })).action(async ({ ctx, parsedInput }) => {
-  const { result, model1, model2, battleId, question } = parsedInput
+  const { result, model1, model2, battleId } = parsedInput
+  const userId = ctx.session.user.id
 
   try {
     // Get current status of both models
     const [model1Data, model2Data] = await Promise.all([
       db.query.models.findFirst({
-        where: (models, { eq }) => eq(models.modelId, model1)
+        where: (models, { eq }) => eq(models.modelId, model1),
       }),
       db.query.models.findFirst({
-        where: (models, { eq }) => eq(models.modelId, model2)
-      })
+        where: (models, { eq }) => eq(models.modelId, model2),
+      }),
     ])
 
     if (!model1Data || !model2Data) {
@@ -58,7 +59,7 @@ export const voteAction = authorizedActionClient.schema(z.object({
         .set({
           winnerId,
           result: battleResult,
-          votedAt: new Date().toISOString()
+          votedAt: new Date().toISOString(),
         })
         .where(eq(battles.id, battleId))
 
@@ -71,15 +72,15 @@ export const voteAction = authorizedActionClient.schema(z.object({
             .where(eq(models.modelId, model1)),
           tx.update(models)
             .set({ losses: sql`${models.losses} + 1` })
-            .where(eq(models.modelId, model2))
+            .where(eq(models.modelId, model2)),
         ])
 
         // Calculate and update ELO scores
         const K_FACTOR = 32
         const elo1 = model1Data.elo ?? DEFAULT_ELO
         const elo2 = model2Data.elo ?? DEFAULT_ELO
-        const r1 = Math.pow(10, elo1 / 400)
-        const r2 = Math.pow(10, elo2 / 400)
+        const r1 = 10 ** (elo1 / 400)
+        const r2 = 10 ** (elo2 / 400)
         const e1 = r1 / (r1 + r2)
         const e2 = r2 / (r1 + r2)
 
@@ -92,7 +93,7 @@ export const voteAction = authorizedActionClient.schema(z.object({
             .where(eq(models.modelId, model1)),
           tx.update(models)
             .set({ elo: newElo2 })
-            .where(eq(models.modelId, model2))
+            .where(eq(models.modelId, model2)),
         ])
       }
       else if (result === 'model2') {
@@ -103,15 +104,15 @@ export const voteAction = authorizedActionClient.schema(z.object({
             .where(eq(models.modelId, model2)),
           tx.update(models)
             .set({ losses: sql`${models.losses} + 1` })
-            .where(eq(models.modelId, model1))
+            .where(eq(models.modelId, model1)),
         ])
 
         // Calculate and update ELO scores
         const K_FACTOR = 32
         const elo1 = model1Data.elo ?? DEFAULT_ELO
         const elo2 = model2Data.elo ?? DEFAULT_ELO
-        const r1 = Math.pow(10, elo1 / 400)
-        const r2 = Math.pow(10, elo2 / 400)
+        const r1 = 10 ** (elo1 / 400)
+        const r2 = 10 ** (elo2 / 400)
         const e1 = r1 / (r1 + r2)
         const e2 = r2 / (r1 + r2)
 
@@ -124,7 +125,7 @@ export const voteAction = authorizedActionClient.schema(z.object({
             .where(eq(models.modelId, model1)),
           tx.update(models)
             .set({ elo: newElo2 })
-            .where(eq(models.modelId, model2))
+            .where(eq(models.modelId, model2)),
         ])
       }
       else if (result === 'draw') {
@@ -135,7 +136,7 @@ export const voteAction = authorizedActionClient.schema(z.object({
             .where(eq(models.modelId, model1)),
           tx.update(models)
             .set({ draws: sql`${models.draws} + 1` })
-            .where(eq(models.modelId, model2))
+            .where(eq(models.modelId, model2)),
         ])
       }
       else if (result === 'invalid') {
@@ -146,7 +147,7 @@ export const voteAction = authorizedActionClient.schema(z.object({
             .where(eq(models.modelId, model1)),
           tx.update(models)
             .set({ invalid: sql`${models.invalid} + 1` })
-            .where(eq(models.modelId, model2))
+            .where(eq(models.modelId, model2)),
         ])
       }
 
