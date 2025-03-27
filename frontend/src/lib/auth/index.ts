@@ -1,9 +1,10 @@
-/* eslint-disable no-console */
 /* eslint-disable node/prefer-global/process */
 import { db } from '@/db'
+import { battles } from '@/db/schema/battles'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { anonymous } from 'better-auth/plugins'
+import { eq } from 'drizzle-orm'
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: 'pg' }),
@@ -20,8 +21,17 @@ export const auth = betterAuth({
     },
   },
   plugins: [anonymous({ async  onLinkAccount({ anonymousUser, newUser }) {
-    // LINK DATA
-    console.log('🚀 ~ onLinkAccount ~ anonymousUser:', anonymousUser)
-    console.log('🚀 ~ onLinkAccount ~ newUser:', newUser)
+    const oldUserId = anonymousUser.user.id
+    const newUserId = newUser.user.id
+
+    if (!oldUserId || !newUserId) {
+      // eslint-disable-next-line no-console
+      console.info('No valid user IDs, skipping syncing logic')
+      return
+    }
+
+    await db.update(battles).set({
+      userId: newUserId,
+    }).where(eq(battles.userId, oldUserId))
   } })],
 })
