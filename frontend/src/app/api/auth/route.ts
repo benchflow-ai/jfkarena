@@ -30,7 +30,7 @@ export async function POST() {
 
   (await cookies()).set('session_token', API_TOKEN, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     sameSite: 'strict',
     path: '/',
     maxAge: 7 * 24 * 60 * 60, // 7 days
