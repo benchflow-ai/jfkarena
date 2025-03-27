@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-
+import { joinURL } from 'ufo'
 // eslint-disable-next-line node/prefer-global/process
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
@@ -10,10 +10,10 @@ if (!API_URL) {
 }
 
 export async function GET(request: NextRequest) {
-  const path = request.nextUrl.pathname
+  const path = request.nextUrl.pathname.replace('/api/proxy', '')
   const { searchParams } = new URL(request.url)
   const search = searchParams.toString() ? `?${searchParams.toString()}` : ''
-  const fullUrl = `${API_URL}/${path}${search}`
+  const fullUrl = joinURL(API_URL, path, search)
 
   const sessionToken = (await cookies()).get('session_token')
   if (!sessionToken) {
@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const path = request.nextUrl.pathname
-  const fullUrl = `${API_URL}/${path}`
+  const path = request.nextUrl.pathname.replace('/api/proxy', '')
+  const fullUrl = joinURL(API_URL, path)
 
   const sessionToken = (await cookies()).get('session_token')
   if (!sessionToken) {
