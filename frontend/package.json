@@ -48,6 +48,7 @@
     "@types/ws": "^8.18.0",
     "@zolplay/prettier-config": "2.0.0-beta.15",
     "autoprefixer": "^10.4.21",
+    "drizzle-kit": "^0.30.5",
     "eslint": "^9.23.0",
     "eslint-config-next": "^14.2.26",
     "eslint-config-prettier": "^10.1.1",
