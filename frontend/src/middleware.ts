@@ -14,6 +14,8 @@ export function middleware(request: NextRequest) {
     requestHeaders.set('Authorization', `Bearer ${sessionToken.value}`)
 
     const nextUrl = new URL(pathname.replace('/api/proxy/', ''), API_URL)
+    // eslint-disable-next-line no-console
+    console.log(`rewrite to `, nextUrl.toString())
     return NextResponse.rewrite(
       nextUrl,
       { headers: requestHeaders },
