@@ -1,14 +1,36 @@
 import type { BattleResponse, Model, SelectedModels } from '../types'
 import { useState } from 'react'
+import useSWRMutation from 'swr/mutation'
 
 interface UseBattleProps {
   models: Model[]
 }
 
+async function sendBattleRequest(url: string, { arg }: { arg: { model1: string, model2: string, question: string } }) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(arg),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Response error:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorText,
+    })
+    throw new Error(`Failed to fetch responses: ${response.status} ${response.statusText}`)
+  }
+
+  return response.json()
+}
+
 export function useBattle({ models }: UseBattleProps) {
   const [question, setQuestion] = useState('')
   const [responses, setResponses] = useState<BattleResponse | null>(null)
-  const [loading, setLoading] = useState(false)
   const [isFlipped, setIsFlipped] = useState(false)
   const [battleId, setBattleId] = useState<number | null>(null)
   const [selectedModels, setSelectedModels] = useState<SelectedModels>({
@@ -17,9 +39,11 @@ export function useBattle({ models }: UseBattleProps) {
   })
   const [error, setError] = useState<string | null>(null)
 
+  const { trigger, isMutating: loading } = useSWRMutation('/api/proxy/battle', sendBattleRequest)
+
   const selectRandomModels = () => {
     if (models.length < 2) {
-      console.log('Not enough models available')
+      console.warn('Not enough models available')
       return null
     }
 
@@ -45,35 +69,15 @@ export function useBattle({ models }: UseBattleProps) {
     }
 
     setSelectedModels(selected)
-    setLoading(true)
     setQuestion(questionText)
 
     try {
-      const requestData = {
+      const data = await trigger({
         model1: selected.model1.id,
         model2: selected.model2.id,
         question: questionText,
-      }
-
-      const response = await fetch('/api/proxy/battle', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
       })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Response error:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        })
-        throw new Error(`Failed to fetch responses: ${response.status} ${response.statusText}`)
-      }
-
-      const data = await response.json()
       setResponses(data)
       setBattleId(data.battle_id)
       setIsFlipped(Math.random() > 0.5)
@@ -81,9 +85,6 @@ export function useBattle({ models }: UseBattleProps) {
     catch (error) {
       console.error('Error details:', error)
       setError('Failed to get responses')
-    }
-    finally {
-      setLoading(false)
     }
   }
 
