@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field, validator
 from typing import Dict
 import os
@@ -22,9 +21,6 @@ load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
-
-# Initialize security
-security = HTTPBearer()
 
 # Initialize tokenizer for length checks
 tokenizer = tiktoken.get_encoding("cl100k_base")
@@ -388,22 +384,12 @@ Question: {question}"""
             detail=f"Failed to get response from {model_id}: {str(e)}"
         )
 
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = os.getenv("JFK_ARENA_TOKEN")
-    if not token:
-        raise HTTPException(status_code=500, detail="API token not configured")
-    
-    if credentials.credentials != token:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    return credentials.credentials
-
 @app.get("/models")
-async def get_models(token: str = Depends(verify_token)):
+async def get_models():
     return SUPPORTED_MODELS
 
 @app.post("/battle")
-async def battle(request: dict, token: str = Depends(verify_token)):
+async def battle(request: dict):
     model1_id = request.get("model1")
     model2_id = request.get("model2")
     question = request.get("question")
@@ -456,7 +442,7 @@ async def battle(request: dict, token: str = Depends(verify_token)):
             raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/vote")
-async def vote(request: dict, token: str = Depends(verify_token)):
+async def vote(request: dict):
     result = request.get("result")
     model1_id = request.get("model1")
     model2_id = request.get("model2")
@@ -606,7 +592,7 @@ async def vote(request: dict, token: str = Depends(verify_token)):
             raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/leaderboard")
-async def get_leaderboard(token: str = Depends(verify_token)):
+async def get_leaderboard():
     with SessionLocal() as db:
         # Get all models sorted by ELO score in descending order
         result = db.execute(
