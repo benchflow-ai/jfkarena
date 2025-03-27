@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:pull": "dotenvx run -f env.local drizzle-kit pull"
+    "db:pull": "dotenvx run -f .env.local -- drizzle-kit pull"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.39.0",
