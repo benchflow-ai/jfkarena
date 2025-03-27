@@ -8,6 +8,9 @@ import { useBattle } from './hooks/useBattle'
 import { useVoting } from './hooks/useVoting'
 import { ResultsCard } from './ResultsCard'
 import { VotingSection } from './VotingSection'
+import { useAction } from "next-safe-action/hooks";
+import { voteAction } from '../leaderboard/actions/voteAction'
+import type { VoteResult } from './types'
 
 export function Battle() {
   const { models, error: authError } = useAuth()
@@ -21,18 +24,18 @@ export function Battle() {
     error: battleError,
     handleSubmit,
   } = useBattle({ models })
-  const {
-    voted,
-    error: votingError,
-    handleVote,
-  } = useVoting({
-    battleId,
-    question,
-    selectedModels,
-    isFlipped,
-  })
+  const { executeAsync: vote, result: voteResult } = useAction(voteAction)
 
-  const error = authError || battleError || votingError
+  const voted = !!voteResult
+
+  const handleVote = async (result: VoteResult) => {
+    if (!battleId || !question || !selectedModels || !selectedModels.model1 || !selectedModels.model2)
+      return
+
+    await vote({ result: result === 'model1' ? 'model1' : 'model2', model1: selectedModels.model1.id, model2: selectedModels.model2.id, battleId, question })
+  }
+
+  const error = authError || battleError
 
   return (
     <div className="container py-10">
