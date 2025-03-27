@@ -9,8 +9,8 @@ if (!API_URL) {
   throw new Error('NEXT_PUBLIC_API_URL environment variable is not set')
 }
 
-export async function GET(request: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/')
+export async function GET(request: NextRequest) {
+  const path = request.nextUrl.pathname
   const { searchParams } = new URL(request.url)
   const search = searchParams.toString() ? `?${searchParams.toString()}` : ''
   const fullUrl = `${API_URL}/${path}${search}`
@@ -47,8 +47,8 @@ export async function GET(request: NextRequest, { params }: { params: { path: st
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { path: string[] } }) {
-  const path = params.path.join('/')
+export async function POST(request: NextRequest) {
+  const path = request.nextUrl.pathname
   const fullUrl = `${API_URL}/${path}`
 
   const sessionToken = (await cookies()).get('session_token')

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use client'
 
 import Header from '@/components/Header'
@@ -30,6 +31,7 @@ export function Battle() {
     model2: null,
   })
   const [error, setError] = useState<string | null>(null)
+  // eslint-disable-next-line unused-imports/no-unused-vars
   const [charCount, setCharCount] = useState(0)
 
   useEffect(() => {

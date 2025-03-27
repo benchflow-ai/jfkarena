@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export default function Navigation() {
-  const pathname = usePathname();
-  
+  const pathname = usePathname()
+
   return (
     <nav className="fixed top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
       <div className="container flex h-14 items-center">
@@ -21,10 +21,10 @@ export default function Navigation() {
             <Link
               href="/battle"
               className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
-                pathname === "/battle"
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                'text-sm font-medium transition-colors hover:text-primary',
+                pathname === '/battle'
+                  ? 'text-primary'
+                  : 'text-muted-foreground',
               )}
             >
               Battle
@@ -32,10 +32,10 @@ export default function Navigation() {
             <Link
               href="/leaderboard"
               className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
-                pathname === "/leaderboard"
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                'text-sm font-medium transition-colors hover:text-primary',
+                pathname === '/leaderboard'
+                  ? 'text-primary'
+                  : 'text-muted-foreground',
               )}
             >
               Leaderboard
@@ -44,5 +44,5 @@ export default function Navigation() {
         </div>
       </div>
     </nav>
-  );
-} 
+  )
+}

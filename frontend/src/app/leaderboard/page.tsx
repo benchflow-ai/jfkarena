@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import Leaderboard from '@/components/Leaderboard';
-import Header from '@/components/Header';
+import Header from '@/components/Header'
+import Leaderboard from '@/components/Leaderboard'
 
 export default function LeaderboardPage() {
   return (
@@ -13,5 +13,5 @@ export default function LeaderboardPage() {
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}
