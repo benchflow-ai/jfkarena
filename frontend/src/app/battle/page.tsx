@@ -1,6 +1,7 @@
 'use client'
 
 import Header from '@/components/Header'
+import { QuestionCarousel } from '@/components/QuestionTemplates'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -210,6 +211,8 @@ export default function BattlePage() {
     }
   }
 
+  const handleQuestionClick = (question: string) => {}
+
   return (
     <div className="container py-10">
       <Header />
@@ -273,6 +276,8 @@ export default function BattlePage() {
             </Button>
           </div>
         </form>
+
+        <QuestionCarousel onQuestionClick={handleQuestionClick} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="p-4 min-h-[300px]">
