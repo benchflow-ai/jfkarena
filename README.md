@@ -20,19 +20,22 @@ A platform for comparing different AI models' responses to questions about JFK u
 ## Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/jfkarena.git
 cd jfkarena
 ```
 
 2. Frontend setup:
+
 ```bash
 cd frontend
 cp .env.example .env
-npm install
+pnpm i
 ```
 
 3. Backend setup:
+
 ```bash
 cd backend
 cp .env.example .env
@@ -45,12 +48,14 @@ pip install -r requirements.txt
 4. Environment Configuration:
 
 Frontend (.env):
+
 ```
 NEXT_PUBLIC_API_URL=
 JFK_ARENA_TOKEN=
 ```
 
 Backend (.env):
+
 ```
 OPENROUTER_API_KEY=
 OPENAI_API_KEY=
@@ -61,6 +66,7 @@ JFK_ARENA_TOKEN=
 ## Development
 
 1. Start the backend server:
+
 ```bash
 cd backend
 source venv/bin/activate
@@ -68,6 +74,7 @@ uvicorn main:app --reload --port 8000
 ```
 
 2. Start the frontend development server:
+
 ```bash
 cd frontend
 npm run dev
@@ -96,6 +103,7 @@ jfkarena/
 ## Deployment
 
 The project is configured for deployment with:
+
 - Frontend: Vercel
 - Backend: Fly.io
 - Database: NeonDB
@@ -110,4 +118,4 @@ The project is configured for deployment with:
 
 ## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License.
