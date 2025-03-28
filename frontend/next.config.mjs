@@ -39,8 +39,9 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            // eslint-disable-next-line no-template-curly-in-string
-            value: 'default-src \'self\'; script-src \'self\' \'unsafe-eval\' \'unsafe-inline\' https://vercel.live https://${process.env.VERCEL_BRANCH_URL}; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: https:; font-src \'self\' data:; connect-src \'self\' https://openrouter.ai/api/ https://vercel.live https://${process.env.VERCEL_BRANCH_URL};',
+
+            // eslint-disable-next-line node/prefer-global/process
+            value: `default-src \'self\'; script-src \'self\' \'unsafe-eval\' \'unsafe-inline\' https://vercel.live https://${process.env.VERCEL_BRANCH_URL}; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: https:; font-src \'self\' data:; connect-src \'self\' https://openrouter.ai/api/ https://vercel.live https://${process.env.VERCEL_BRANCH_URL};`,
           },
         ],
       },
