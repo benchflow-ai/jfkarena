@@ -10,6 +10,7 @@
     "lint": "next lint",
     "db:pull": "dotenvx run -f .env.local -- drizzle-kit pull",
     "db:generate": "dotenvx run -f .env.local -- drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "db:prototyping": "dotenvx run -f .env.local -- drizzle-kit push"
   },
   "dependencies": {
