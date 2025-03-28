@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useSession } from '@/features/auth/use-session'
+import { fetcher } from '@/lib/fetcher'
 import useSWR from 'swr'
 
 interface ModelStats {
@@ -22,25 +23,17 @@ interface ModelStats {
   elo: number
 }
 
-async function fetcher(url: string) {
-  // Fetch the actual data
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error('Failed to fetch leaderboard data')
-  }
-  return response.json()
-}
 
 export default function Leaderboard() {
   const { data: session } = useSession()
   const isSignedIn = !!session?.user.id
 
-  const { data: models, error, isLoading } = useSWR<ModelStats[]>(isSignedIn ? '/api/proxy/leaderboard' : null, fetcher)
+  const { data: models, error, isLoading } = useSWR(isSignedIn ? '/api/proxy/leaderboard' : null, fetcher<ModelStats[]>)
 
   if (!isSignedIn || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     )
   }

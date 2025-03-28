@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Navigation from '@/components/Navigation'
+import { AnonymouseSessionProvider } from '@/features/auth/AnonymouseSessionProvider'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
+          <AnonymouseSessionProvider />
           <Navigation />
           <main className="py-8 px-4 sm:px-6 lg:px-8">{children}</main>
         </div>

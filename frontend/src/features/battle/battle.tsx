@@ -38,7 +38,7 @@ export function Battle() {
     if (!battleId || !question || !selectedModels || !selectedModels.model1 || !selectedModels.model2)
       return
 
-    await vote({ result: result === 'model1' ? 'model1' : 'model2', model1: selectedModels.model1.id, model2: selectedModels.model2.id, battleId, question })
+    await vote({ result, model1: selectedModels.model1.id, model2: selectedModels.model2.id, battleId, question })
   }
 
   const error = authError || battleError

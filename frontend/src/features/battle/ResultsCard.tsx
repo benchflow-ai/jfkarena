@@ -58,7 +58,7 @@ export function ResultsCard({ voted, isFlipped, selectedModels }: ResultsCardPro
               )}
         </p>
         <Button variant="outline" asChild>
-          <Link href={isSignedIn ? '/leaderboard' : '/login?next=/leaderboard'}>
+          <Link href={isSignedIn ? '/leaderboard/personal' : '/login?next=/leaderboard/personal'}>
             {isSignedIn ? 'View Leaderboard' : 'Login'}
           </Link>
         </Button>
