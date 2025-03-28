@@ -23,9 +23,9 @@ export function Battle() {
     error: battleError,
     handleSubmit,
   } = useBattle({ models })
-  const { executeAsync: vote, result: voteResult } = useAction(voteAction)
+  const { executeAsync: vote, hasSucceeded } = useAction(voteAction)
 
-  const voted = !!voteResult
+  const voted = !!hasSucceeded
 
   const handleVote = async (result: VoteResult) => {
     if (!battleId || !question || !selectedModels || !selectedModels.model1 || !selectedModels.model2)
