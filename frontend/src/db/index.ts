@@ -35,3 +35,6 @@ const schema = {
 
 const pool = new Pool({ connectionString })
 export const db = drizzle(pool, { schema })
+
+export type DatabaseType = typeof db
+export type TransactionType = Parameters<Parameters<DatabaseType['transaction']>[0]>[0]
