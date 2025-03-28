@@ -1,10 +1,11 @@
-import { DEFAULT_ELO } from '@/constants'
 import { db } from '@/db'
-import { battles } from '@/db/schema/battles'
-import { models } from '@/db/schema/models'
-import { eq, sql } from 'drizzle-orm'
+import { calculateEloChange, updateEloRatings, updateModelStats } from './utils'
 
-export async function updateOverallLeaderboard({ userId, battleId, result, model1, model2 }: { userId: string, battleId: number, result: string, model1: string, model2: string }) {
+export async function updateOverallLeaderboard({ result, model1, model2 }: {
+  result: string
+  model1: string
+  model2: string
+}) {
   try {
     // Get current status of both models
     const [model1Data, model2Data] = await Promise.all([
@@ -20,122 +21,20 @@ export async function updateOverallLeaderboard({ userId, battleId, result, model
       throw new Error('Model not found')
     }
 
-    // Determine battle result and winner
-    let battleResult = null
-    let winnerId = null
-    if (result === 'model1') {
-      winnerId = model1Data.id
-      battleResult = 'model1_win'
-    }
-    else if (result === 'model2') {
-      winnerId = model2Data.id
-      battleResult = 'model2_win'
-    }
-    else if (result === 'draw') {
-      battleResult = 'draw'
-    }
-    else {
-      battleResult = 'invalid'
-    }
-
     // Start transaction
     return await db.transaction(async (tx) => {
-      // Update battle record
-      await tx.update(battles)
-        .set({
-          userId,
-          winnerId,
-          result: battleResult,
-          votedAt: new Date().toISOString(),
+      // Update model statistics
+      await updateModelStats({ tx, winner: result, model1Id: model1, model2Id: model2 })
+
+      // Update ELO ratings if there's a winner
+      if (result === 'model1' || result === 'model2') {
+        const model1Won = result === 'model1'
+        const { newElo1, newElo2 } = calculateEloChange({
+          model1: model1Data,
+          model2: model2Data,
+          model1Won,
         })
-        .where(eq(battles.id, battleId))
-
-      // Update model statistics based on result
-      if (result === 'model1') {
-        // Update win/loss counts
-        await Promise.all([
-          tx.update(models)
-            .set({ wins: sql`${models.wins} + 1` })
-            .where(eq(models.modelId, model1)),
-          tx.update(models)
-            .set({ losses: sql`${models.losses} + 1` })
-            .where(eq(models.modelId, model2)),
-        ])
-
-        // Calculate and update ELO scores
-        const K_FACTOR = 32
-        const elo1 = model1Data.elo ?? DEFAULT_ELO
-        const elo2 = model2Data.elo ?? DEFAULT_ELO
-        const r1 = 10 ** (elo1 / 400)
-        const r2 = 10 ** (elo2 / 400)
-        const e1 = r1 / (r1 + r2)
-        const e2 = r2 / (r1 + r2)
-
-        const newElo1 = elo1 + K_FACTOR * (1 - e1)
-        const newElo2 = elo2 + K_FACTOR * (0 - e2)
-
-        await Promise.all([
-          tx.update(models)
-            .set({ elo: newElo1 })
-            .where(eq(models.modelId, model1)),
-          tx.update(models)
-            .set({ elo: newElo2 })
-            .where(eq(models.modelId, model2)),
-        ])
-      }
-      else if (result === 'model2') {
-        // Update win/loss counts
-        await Promise.all([
-          tx.update(models)
-            .set({ wins: sql`${models.wins} + 1` })
-            .where(eq(models.modelId, model2)),
-          tx.update(models)
-            .set({ losses: sql`${models.losses} + 1` })
-            .where(eq(models.modelId, model1)),
-        ])
-
-        // Calculate and update ELO scores
-        const K_FACTOR = 32
-        const elo1 = model1Data.elo ?? DEFAULT_ELO
-        const elo2 = model2Data.elo ?? DEFAULT_ELO
-        const r1 = 10 ** (elo1 / 400)
-        const r2 = 10 ** (elo2 / 400)
-        const e1 = r1 / (r1 + r2)
-        const e2 = r2 / (r1 + r2)
-
-        const newElo1 = elo1 + K_FACTOR * (0 - e1)
-        const newElo2 = elo2 + K_FACTOR * (1 - e2)
-
-        await Promise.all([
-          tx.update(models)
-            .set({ elo: newElo1 })
-            .where(eq(models.modelId, model1)),
-          tx.update(models)
-            .set({ elo: newElo2 })
-            .where(eq(models.modelId, model2)),
-        ])
-      }
-      else if (result === 'draw') {
-        // Update draw counts
-        await Promise.all([
-          tx.update(models)
-            .set({ draws: sql`${models.draws} + 1` })
-            .where(eq(models.modelId, model1)),
-          tx.update(models)
-            .set({ draws: sql`${models.draws} + 1` })
-            .where(eq(models.modelId, model2)),
-        ])
-      }
-      else if (result === 'invalid') {
-        // Update invalid counts
-        await Promise.all([
-          tx.update(models)
-            .set({ invalid: sql`${models.invalid} + 1` })
-            .where(eq(models.modelId, model1)),
-          tx.update(models)
-            .set({ invalid: sql`${models.invalid} + 1` })
-            .where(eq(models.modelId, model2)),
-        ])
+        await updateEloRatings({ tx, model1Id: model1, model2Id: model2, newElo1, newElo2 })
       }
 
       return { status: 'success' }
