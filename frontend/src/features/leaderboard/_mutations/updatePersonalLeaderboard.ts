@@ -3,7 +3,7 @@ import type { Model } from '../types'
 import { DEFAULT_ELO } from '@/constants'
 import { db } from '@/db'
 import { models } from '@/db/schema/models'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 
 const K_FACTOR = 32
 
@@ -35,69 +35,101 @@ function calculateEloChange({ model1, model2, model1Won }: {
 }
 
 // Update model statistics based on battle result
-async function updateModelStats({ tx, winner, model1Id, model2Id }: {
+async function updateModelStats({ tx, winner, model1Id, model2Id, userId }: {
   tx: TransactionType
   winner: string
   model1Id: string
   model2Id: string
+  userId: string
 }) {
   if (winner === 'model1') {
     await Promise.all([
       tx.update(models)
         .set({ wins: sql`${models.wins} + 1` })
-        .where(eq(models.modelId, model1Id)),
+        .where(and(
+          eq(models.modelId, model1Id),
+          eq(models.userId, userId),
+        )),
       tx.update(models)
         .set({ losses: sql`${models.losses} + 1` })
-        .where(eq(models.modelId, model2Id)),
+        .where(and(
+          eq(models.modelId, model2Id),
+          eq(models.userId, userId),
+        )),
     ])
   }
   else if (winner === 'model2') {
     await Promise.all([
       tx.update(models)
         .set({ wins: sql`${models.wins} + 1` })
-        .where(eq(models.modelId, model2Id)),
+        .where(and(
+          eq(models.modelId, model2Id),
+          eq(models.userId, userId),
+        )),
       tx.update(models)
         .set({ losses: sql`${models.losses} + 1` })
-        .where(eq(models.modelId, model1Id)),
+        .where(and(
+          eq(models.modelId, model1Id),
+          eq(models.userId, userId),
+        )),
     ])
   }
   else if (winner === 'draw') {
     await Promise.all([
       tx.update(models)
         .set({ draws: sql`${models.draws} + 1` })
-        .where(eq(models.modelId, model1Id)),
+        .where(and(
+          eq(models.modelId, model1Id),
+          eq(models.userId, userId),
+        )),
       tx.update(models)
         .set({ draws: sql`${models.draws} + 1` })
-        .where(eq(models.modelId, model2Id)),
+        .where(and(
+          eq(models.modelId, model2Id),
+          eq(models.userId, userId),
+        )),
     ])
   }
   else {
     await Promise.all([
       tx.update(models)
         .set({ invalid: sql`${models.invalid} + 1` })
-        .where(eq(models.modelId, model1Id)),
+        .where(and(
+          eq(models.modelId, model1Id),
+          eq(models.userId, userId),
+        )),
       tx.update(models)
         .set({ invalid: sql`${models.invalid} + 1` })
-        .where(eq(models.modelId, model2Id)),
+        .where(and(
+          eq(models.modelId, model2Id),
+          eq(models.userId, userId),
+        )),
     ])
   }
 }
 
 // Update ELO ratings for both models
-async function updateEloRatings({ tx, model1Id, model2Id, newElo1, newElo2 }: {
+async function updateEloRatings({ tx, model1Id, model2Id, newElo1, newElo2, userId }: {
   tx: TransactionType
   model1Id: string
   model2Id: string
   newElo1: number
   newElo2: number
+  userId: string
 }) {
   await Promise.all([
     tx.update(models)
       .set({ elo: newElo1 })
-      .where(eq(models.modelId, model1Id)),
+      .where(and(
+        eq(models.modelId, model1Id),
+        eq(models.userId, userId),
+      )),
     tx.update(models)
       .set({ elo: newElo2 })
-      .where(eq(models.modelId, model2Id)),
+      .where(and(
+        eq(models.modelId, model2Id),
+        eq(models.userId, userId),
+      )),
   ])
 }
 
@@ -213,7 +245,7 @@ export async function updatePersonalLeaderboard({ userId, result, model1, model2
         = await fetchModels({ tx, userId, model1Id: model1, model2Id: model2 })
 
       // Ensure personal models exist
-      const { model1Personal: _model1Personal, model2Personal: _model2Personal }
+      const { model1Personal, model2Personal }
         = await ensurePersonalModels({
           tx,
           userId,
@@ -223,18 +255,35 @@ export async function updatePersonalLeaderboard({ userId, result, model1, model2
           personalModel2Data,
         })
 
-      // Update model statistics
-      await updateModelStats({ tx, winner: result, model1Id: model1, model2Id: model2 })
+      if (!model1Personal || !model2Personal) {
+        throw new Error('Failed to create personal models')
+      }
 
-      // Update ELO ratings if there's a winner
+      // Update personal model statistics
+      await updateModelStats({
+        tx,
+        winner: result,
+        model1Id: model1Personal.modelId!,
+        model2Id: model2Personal.modelId!,
+        userId,
+      })
+
+      // Update personal ELO ratings if there's a winner
       if (result === 'model1' || result === 'model2') {
         const model1Won = result === 'model1'
         const { newElo1, newElo2 } = calculateEloChange({
-          model1: rawModel1Data,
-          model2: rawModel2Data,
+          model1: model1Personal,
+          model2: model2Personal,
           model1Won,
         })
-        await updateEloRatings({ tx, model1Id: model1, model2Id: model2, newElo1, newElo2 })
+        await updateEloRatings({
+          tx,
+          model1Id: model1Personal.modelId!,
+          model2Id: model2Personal.modelId!,
+          newElo1,
+          newElo2,
+          userId,
+        })
       }
 
       return { status: 'success' }
