@@ -9,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useEffect, useState } from 'react'
+import { useSession } from '@/features/auth/use-session'
+import useSWR from 'swr'
 
 interface ModelStats {
   id: string
@@ -21,54 +22,22 @@ interface ModelStats {
   elo: number
 }
 
+async function fetcher(url: string) {
+  // Fetch the actual data
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error('Failed to fetch leaderboard data')
+  }
+  return response.json()
+}
+
 export default function Leaderboard() {
-  const [models, setModels] = useState<ModelStats[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data: session } = useSession()
+  const isSignedIn = !!session?.user.id
 
-  useEffect(() => {
-    const authenticate = async () => {
-      try {
-        const authResponse = await fetch('/api/auth')
-        if (!authResponse.ok) {
-          const loginResponse = await fetch('/api/auth', { method: 'POST' })
-          if (!loginResponse.ok) {
-            throw new Error('Failed to authenticate')
-          }
-        }
-      }
-      catch (err) {
-        setError(err instanceof Error ? err.message : 'Authentication failed')
-        return false
-      }
-      return true
-    }
+  const { data: models, error, isLoading } = useSWR<ModelStats[]>(isSignedIn ? '/api/proxy/leaderboard' : null, fetcher)
 
-    const fetchLeaderboard = async () => {
-      try {
-        const isAuthenticated = await authenticate()
-        if (!isAuthenticated)
-          return
-
-        const response = await fetch('/api/proxy/leaderboard')
-        if (!response.ok) {
-          throw new Error(`Failed to fetch leaderboard data`)
-        }
-        const data = await response.json()
-        setModels(data)
-      }
-      catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-      }
-      finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLeaderboard()
-  }, [])
-
-  if (loading) {
+  if (!isSignedIn || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -81,7 +50,7 @@ export default function Leaderboard() {
       <div className="text-destructive text-center p-4">
         Error:
         {' '}
-        {error}
+        {error.message}
       </div>
     )
   }
@@ -101,7 +70,7 @@ export default function Leaderboard() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {models.map((model, index) => (
+          {models?.map((model, index) => (
             <TableRow key={model.id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>{model.name}</TableCell>

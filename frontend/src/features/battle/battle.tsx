@@ -6,13 +6,13 @@ import { useAction } from 'next-safe-action/hooks'
 import { voteAction } from '../leaderboard/actions/voteAction'
 import { BattleForm } from './BattleForm'
 import { BattleResponses } from './BattleResponses'
-import { useAuth } from './hooks/useAuth'
 import { useBattle } from './hooks/useBattle'
+import { useModels } from './hooks/useModels'
 import { ResultsCard } from './ResultsCard'
 import { VotingSection } from './VotingSection'
 
 export function Battle() {
-  const { models, error: authError } = useAuth()
+  const { models, error: authError } = useModels()
   const {
     question,
     responses,

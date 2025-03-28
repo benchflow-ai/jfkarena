@@ -12,7 +12,7 @@ async function fetchModels() {
   return response.json()
 }
 
-export function useAuth() {
+export function useModels() {
   const { data: session, isPending } = useSession()
 
   const isSignedIn = !!session?.user.id
