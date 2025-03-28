@@ -37,11 +37,11 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
-          {
-            key: 'Content-Security-Policy',
-            // eslint-disable-next-line node/prefer-global/process
-            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live${process.env.VERCEL_BRANCH_URL ? ` https://${process.env.VERCEL_BRANCH_URL}` : ''}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://openrouter.ai/api/ https://vercel.live${process.env.VERCEL_BRANCH_URL ? ` https://${process.env.VERCEL_BRANCH_URL}` : ''};`,
-          },
+          // {
+          //   key: 'Content-Security-Policy',
+          //   // eslint-disable-next-line node/prefer-global/process
+          //   value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live${process.env.VERCEL_BRANCH_URL ? ` https://${process.env.VERCEL_BRANCH_URL}` : ''}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://openrouter.ai/api/ https://vercel.live${process.env.VERCEL_BRANCH_URL ? ` https://${process.env.VERCEL_BRANCH_URL}` : ''};`,
+          // },
         ],
       },
     ]
