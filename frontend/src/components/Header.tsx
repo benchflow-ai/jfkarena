@@ -6,5 +6,5 @@ export default function Header() {
         Compare different AI models' responses to questions about JFK files.
       </p>
     </div>
-  );
+  )
 }

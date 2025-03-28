@@ -384,7 +384,6 @@ Question: {question}"""
             detail=f"Failed to get response from {model_id}: {str(e)}"
         )
 
-
 @app.get("/models")
 async def get_models():
     return SUPPORTED_MODELS
