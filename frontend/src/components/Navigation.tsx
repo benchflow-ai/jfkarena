@@ -46,6 +46,18 @@ export default function Navigation() {
             >
               Leaderboard
             </Link>
+
+            <Link
+              href="/leaderboard/personal"
+              className={cn(
+                'text-sm font-medium transition-colors hover:text-primary',
+                pathname === '/leaderboard/personal'
+                  ? 'text-primary'
+                  : 'text-muted-foreground',
+              )}
+            >
+              Personal Leaderboard
+            </Link>
           </nav>
           {!isPending && (
             <>
