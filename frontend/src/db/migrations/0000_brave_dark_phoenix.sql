@@ -1,6 +1,6 @@
 -- Current sql file was generated after introspecting the database
 -- If you want to run this migration please uncomment this code before executing migrations
-/*
+
 CREATE TABLE "models" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"model_id" varchar,
@@ -29,4 +29,3 @@ CREATE TABLE "battles" (
 ALTER TABLE "battles" ADD CONSTRAINT "battles_model1_id_fkey" FOREIGN KEY ("model1_id") REFERENCES "public"."models"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "battles" ADD CONSTRAINT "battles_model2_id_fkey" FOREIGN KEY ("model2_id") REFERENCES "public"."models"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "battles" ADD CONSTRAINT "battles_winner_id_fkey" FOREIGN KEY ("winner_id") REFERENCES "public"."models"("id") ON DELETE cascade ON UPDATE no action;
-*/
