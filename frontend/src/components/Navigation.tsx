@@ -51,7 +51,7 @@ export default function Navigation() {
             <>
               {session?.user.id && !session.user.isAnonymous
                 ? (
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger>
                         <Avatar className="size-6">
                           <AvatarImage src={session.user.image ?? undefined} />
