@@ -17,7 +17,6 @@ export function middleware(request: NextRequest) {
     const nextUrl = new URL(pathname.replace('/api/proxy/', ''), API_URL)
     return NextResponse.rewrite(
       nextUrl,
-
     )
   }
 
