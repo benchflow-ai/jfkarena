@@ -1,24 +1,10 @@
-'use server'
-
+import { DEFAULT_ELO } from '@/constants'
 import { db } from '@/db'
 import { battles } from '@/db/schema/battles'
 import { models } from '@/db/schema/models'
-import { authorizedActionClient } from '@/lib/safe-action'
 import { eq, sql } from 'drizzle-orm'
-import { z } from 'zod'
 
-const DEFAULT_ELO = 1500
-
-export const voteAction = authorizedActionClient.schema(z.object({
-  result: z.string(),
-  model1: z.string(),
-  model2: z.string(),
-  battleId: z.number(),
-  question: z.string(),
-})).action(async ({ ctx, parsedInput }) => {
-  const { result, model1, model2, battleId } = parsedInput
-  const userId = ctx.session.user.id
-
+export async function updateOverallLeaderboard({ userId, battleId, result, model1, model2 }: { userId: string, battleId: number, result: string, model1: string, model2: string }) {
   try {
     // Get current status of both models
     const [model1Data, model2Data] = await Promise.all([
@@ -159,4 +145,4 @@ export const voteAction = authorizedActionClient.schema(z.object({
     console.error('Error in vote action:', error)
     throw error
   }
-})
+}

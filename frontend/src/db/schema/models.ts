@@ -9,6 +9,7 @@ export const models = pgTable('models', {
   draws: integer(),
   invalid: integer(),
   elo: doublePrecision(),
+  userId: varchar('user_id'),
 }, table => [
-  unique('models_model_id_key').on(table.modelId),
+  unique('models_user_id_model_id_key').on(table.userId, table.modelId),
 ])

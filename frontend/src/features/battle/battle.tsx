@@ -4,7 +4,7 @@ import type { VoteResult } from './types'
 import Header from '@/components/Header'
 import { useAction } from 'next-safe-action/hooks'
 import { useEffect } from 'react'
-import { voteAction } from '../leaderboard/actions/voteAction'
+import { voteAction } from '../leaderboard/_actions/voteAction'
 import { BattleForm } from './BattleForm'
 import { BattleResponses } from './BattleResponses'
 import { useBattle } from './hooks/useBattle'
@@ -38,7 +38,7 @@ export function Battle() {
     if (!battleId || !question || !selectedModels || !selectedModels.model1 || !selectedModels.model2)
       return
 
-    await vote({ result, model1: selectedModels.model1.id, model2: selectedModels.model2.id, battleId, question })
+    await vote({ result, model1: selectedModels.model1.id, model2: selectedModels.model2.id, battleId })
   }
 
   const error = authError || battleError
