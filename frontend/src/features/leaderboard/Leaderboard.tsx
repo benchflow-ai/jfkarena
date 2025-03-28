@@ -23,7 +23,6 @@ interface ModelStats {
   elo: number
 }
 
-
 export default function Leaderboard() {
   const { data: session } = useSession()
   const isSignedIn = !!session?.user.id
