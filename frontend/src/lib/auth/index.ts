@@ -14,11 +14,11 @@ export const auth = betterAuth({
       clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
       prompt: 'select_account',
     },
-    // google: {
-    //   clientId: process.env.GOOGLE_CLIENT_ID || '',
-    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    //   prompt: 'select_account',
-    // },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      prompt: 'select_account',
+    },
   },
   plugins: [anonymous({ async  onLinkAccount({ anonymousUser, newUser }) {
     const oldUserId = anonymousUser.user.id
