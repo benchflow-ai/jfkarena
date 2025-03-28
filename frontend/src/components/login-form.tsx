@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { authClient } from '@/lib/auth/authClient'
 
 import { cn } from '@/lib/utils'
-import { GalleryVerticalEnd } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
 export function LoginForm({
@@ -27,7 +26,7 @@ export function LoginForm({
             className="flex flex-col items-center gap-2 font-medium"
           >
             <div className="flex size-8 items-center justify-center rounded-md">
-              <GalleryVerticalEnd className="size-6" />
+              ⚔️
             </div>
             <span className="sr-only">JFK Arena.</span>
           </a>
@@ -52,7 +51,7 @@ export function LoginForm({
               Or
             </span>
           </div> */}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-1">
           <Button
             variant="outline"
             className="w-full"
@@ -68,7 +67,7 @@ export function LoginForm({
             </svg>
             Continue with Github
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             className="w-full"
             onClick={() => {
@@ -82,7 +81,7 @@ export function LoginForm({
               />
             </svg>
             Continue with Google
-          </Button>
+          </Button> */}
         </div>
       </div>
 
