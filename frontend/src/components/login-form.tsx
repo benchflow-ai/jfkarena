@@ -4,11 +4,19 @@ import { authClient } from '@/lib/auth/authClient'
 
 import { cn } from '@/lib/utils'
 import { GalleryVerticalEnd } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
+  const searchParams = useSearchParams()
+  let next = searchParams.get('next')
+
+  if (next) {
+    next = decodeURIComponent(next)
+  }
+
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <form>
@@ -49,7 +57,7 @@ export function LoginForm({
               variant="outline"
               className="w-full"
               onClick={() => {
-                authClient.signIn.social({ provider: 'github' })
+                authClient.signIn.social({ provider: 'github', callbackURL: next ?? undefined })
               }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -64,7 +72,7 @@ export function LoginForm({
               variant="outline"
               className="w-full"
               onClick={() => {
-                authClient.signIn.social({ provider: 'google' })
+                authClient.signIn.social({ provider: 'google', callbackURL: next ?? undefined })
               }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
