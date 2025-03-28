@@ -67,6 +67,9 @@ export function useBattle({ models }: UseBattleProps) {
       setError('Not enough models available')
       return
     }
+    setResponses(null)
+    setBattleId(null)
+    setIsFlipped(false)
 
     setSelectedModels(selected)
     setQuestion(questionText)

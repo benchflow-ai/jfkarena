@@ -3,6 +3,7 @@
 import type { VoteResult } from './types'
 import Header from '@/components/Header'
 import { useAction } from 'next-safe-action/hooks'
+import { useEffect } from 'react'
 import { voteAction } from '../leaderboard/actions/voteAction'
 import { BattleForm } from './BattleForm'
 import { BattleResponses } from './BattleResponses'
@@ -23,9 +24,15 @@ export function Battle() {
     error: battleError,
     handleSubmit,
   } = useBattle({ models })
-  const { executeAsync: vote, hasSucceeded } = useAction(voteAction)
+  const { executeAsync: vote, hasSucceeded, reset } = useAction(voteAction)
 
   const voted = !!hasSucceeded
+
+  useEffect(() => {
+    if (battleId === null) {
+      reset()
+    }
+  }, [battleId, reset])
 
   const handleVote = async (result: VoteResult) => {
     if (!battleId || !question || !selectedModels || !selectedModels.model1 || !selectedModels.model2)
