@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { db } from '@/db'
-import { battles } from '@/db/schema/battles'
+import { models } from '@/db/schema/models'
 import { desc, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { getSession } from '../auth/get-session'
@@ -16,13 +16,9 @@ export async function PersonalLeaderboard() {
     )
   }
 
-  const data = await db.query.battles.findMany({
-    where: eq(battles.userId, session.user.id),
-    with: {
-      model_model1Id: true,
-      model_model2Id: true,
-    },
-    orderBy: desc(battles.createdAt),
+  const data = await db.query.models.findMany({
+    where: eq(models.userId, session.user.id),
+    orderBy: [desc(models.elo)],
   })
 
   return (
@@ -30,25 +26,25 @@ export async function PersonalLeaderboard() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Question</TableHead>
-            <TableHead>Model 1</TableHead>
-            <TableHead>Model 2</TableHead>
+            <TableHead className="w-[100px]">Rank</TableHead>
+            <TableHead>Model</TableHead>
+            <TableHead className="text-right">ELO</TableHead>
+            <TableHead className="text-right">Wins</TableHead>
+            <TableHead className="text-right">Losses</TableHead>
+            <TableHead className="text-right">Draws</TableHead>
+            <TableHead className="text-right">Invalid</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data?.map((model, index) => (
             <TableRow key={model.id}>
               <TableCell className="font-medium">{index + 1}</TableCell>
-              <TableCell>
-                {model.model_model1Id?.name}
-                {' '}
-                {model.winnerId === model.model_model1Id?.id && '🏆'}
-              </TableCell>
-              <TableCell>
-                {model.model_model2Id?.name}
-                {' '}
-                {model.winnerId === model.model_model2Id?.id && '🏆'}
-              </TableCell>
+              <TableCell>{model.name}</TableCell>
+              <TableCell className="text-right">{Math.round(model.elo ?? 0)}</TableCell>
+              <TableCell className="text-right text-green-600">{model.wins}</TableCell>
+              <TableCell className="text-right text-red-600">{model.losses}</TableCell>
+              <TableCell className="text-right text-yellow-600">{model.draws}</TableCell>
+              <TableCell className="text-right text-muted-foreground">{model.invalid}</TableCell>
             </TableRow>
           ))}
         </TableBody>
