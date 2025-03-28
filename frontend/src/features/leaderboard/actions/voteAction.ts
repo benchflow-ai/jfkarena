@@ -10,7 +10,7 @@ import { z } from 'zod'
 const DEFAULT_ELO = 1500
 
 export const voteAction = authorizedActionClient.schema(z.object({
-  result: z.enum(['model1', 'model2']),
+  result: z.string(),
   model1: z.string(),
   model2: z.string(),
   battleId: z.number(),
