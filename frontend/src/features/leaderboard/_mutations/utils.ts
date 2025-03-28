@@ -4,7 +4,7 @@ import { DEFAULT_ELO } from '@/constants'
 import { db } from '@/db'
 import { battles } from '@/db/schema/battles'
 import { models } from '@/db/schema/models'
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 
 const K_FACTOR = 32
 

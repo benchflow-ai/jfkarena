@@ -2,6 +2,8 @@ import Header from '@/components/Header'
 import Leaderboard from '@/features/leaderboard/Leaderboard'
 import { Suspense } from 'react'
 
+export const dynamic = 'force-dynamic'
+
 export default function LeaderboardPage() {
   return (
     <div className="container py-10">
