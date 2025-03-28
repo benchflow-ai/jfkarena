@@ -10,7 +10,7 @@
     "lint": "next lint",
     "db:pull": "dotenvx run -f .env.local -- drizzle-kit pull",
     "db:generate": "dotenvx run -f .env.local -- drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "[ \"$VERCEL_GIT_COMMIT_REF\" = \"staging\" ] || [ \"$VERCEL_GIT_COMMIT_REF\" = \"main\" ] && drizzle-kit migrate || (echo \"Skipping migration: not on staging or main branch\" && exit 0)",
     "db:prototyping": "dotenvx run -f .env.local -- drizzle-kit push"
   },
   "dependencies": {
@@ -42,6 +42,7 @@
     "swr": "^2.3.3",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.19.3",
     "ufo": "^1.5.4",
     "ws": "^8.18.1",
     "zod": "link:@hookform/resolvers/zod"
