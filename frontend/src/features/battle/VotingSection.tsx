@@ -1,5 +1,8 @@
+'use client'
+
 import type { BattleResponse, VoteResult } from './types'
 import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 
 interface VotingSectionProps {
   responses: BattleResponse | null
@@ -8,16 +11,23 @@ interface VotingSectionProps {
 }
 
 export function VotingSection({ responses, voted, onVote }: VotingSectionProps) {
+  const [selectedVote, setSelectedVote] = useState<VoteResult | null>(null)
+
   if (!responses || voted)
     return null
+
+  const handleVote = (result: VoteResult) => {
+    setSelectedVote(result)
+    onVote(result)
+  }
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onVote('model1')}
-        disabled={voted}
+        onClick={() => handleVote('model1')}
+        disabled={voted || selectedVote !== null}
         className="text-xs"
       >
         Model A Wins
@@ -25,8 +35,8 @@ export function VotingSection({ responses, voted, onVote }: VotingSectionProps) 
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onVote('model2')}
-        disabled={voted}
+        onClick={() => handleVote('model2')}
+        disabled={voted || selectedVote !== null}
         className="text-xs"
       >
         Model B Wins
@@ -34,8 +44,8 @@ export function VotingSection({ responses, voted, onVote }: VotingSectionProps) 
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onVote('draw')}
-        disabled={voted}
+        onClick={() => handleVote('draw')}
+        disabled={voted || selectedVote !== null}
         className="text-xs"
       >
         Draw
@@ -43,8 +53,8 @@ export function VotingSection({ responses, voted, onVote }: VotingSectionProps) 
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onVote('invalid')}
-        disabled={voted}
+        onClick={() => handleVote('invalid')}
+        disabled={voted || selectedVote !== null}
         className="text-xs"
       >
         Invalid

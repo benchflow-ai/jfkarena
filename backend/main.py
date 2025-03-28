@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, validator
 from typing import Dict
 import os
-import time
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
@@ -12,9 +11,10 @@ from langchain_community.document_loaders import DirectoryLoader
 import httpx
 import json
 import tiktoken
-from sqlalchemy import create_engine, Column, Integer, String, Float, MetaData, Table, select, func, ForeignKey, inspect, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Float, MetaData, Table, select, func, ForeignKey, inspect, DateTime, UniqueConstraint, Boolean
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
+import asyncio
 
 # Load environment variables
 load_dotenv()
@@ -137,17 +137,32 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Create database tables
 metadata = MetaData()
 
+user = Table(
+    "user",
+    metadata,
+    Column("id", String, primary_key=True),
+    Column("name", String, nullable=False),
+    Column("email", String, nullable=False, unique=True),
+    Column("email_verified", Boolean, nullable=False),
+    Column("image", String, nullable=True),
+    Column("created_at", DateTime, nullable=False),
+    Column("updated_at", DateTime, nullable=False),
+    Column("anonymous", Boolean, nullable=False, default=False),
+)
+
 models = Table(
     "models",
     metadata,
     Column("id", Integer, primary_key=True),
-    Column("model_id", String, unique=True),
+    Column("model_id", String),
     Column("name", String),
     Column("wins", Integer, default=0),
     Column("losses", Integer, default=0),
     Column("draws", Integer, default=0),
     Column("invalid", Integer, default=0),
     Column("elo", Float, default=1500.0),
+    Column("user_id", String, ForeignKey("user.id", ondelete="CASCADE"), nullable=True),
+    UniqueConstraint('user_id', 'model_id', name='models_user_id_model_id_key')
 )
 
 battles = Table(
@@ -163,6 +178,7 @@ battles = Table(
     Column("result", String, nullable=True),  # 'model1_win', 'model2_win', 'draw', 'invalid'
     Column("created_at", DateTime, default=func.now()),
     Column("voted_at", DateTime, nullable=True),
+    Column("user_id", String, ForeignKey("user.id", ondelete="CASCADE"), nullable=True),
 )
 
 # Supported model list
@@ -170,23 +186,19 @@ SUPPORTED_MODELS = [
     {"id": "openai/gpt-4o-mini", "name": "GPT-4o Mini"},
     {"id": "openai/gpt-4-turbo-preview", "name": "GPT-4 Turbo"},
     {"id": "openai/gpt-4", "name": "GPT-4"},
-    {"id": "openai/gpt-3.5-turbo", "name": "GPT-3.5 Turbo"},
     {"id": "google/gemini-2.0-flash-exp:free", "name": "Gemini 2.0 Flash"},
-    {"id": "google/learnlm-1.5-pro-experimental:free", "name": "Gemini 1.5 Pro"},
+    {"id": "google/gemini-2.5-pro-exp-03-25:free", "name": "Gemini 2.5 Pro"},
     {"id": "qwen/qwen2.5-vl-32b-instruct:free", "name": "qwen2.5-vl-32b-instruct"},
     {"id": "qwen/qwen2.5-vl-72b-instruct:free", "name": "qwen2.5-vl-72b-instruct"},
-    # {"id": "anthropic/claude-3.7-sonnet", "name": "Claude 3.7 Sonnet"},
-    # {"id": "anthropic/claude-3.5-haiku-20241022:beta", "name": "Claude 3.5 haiku"},
+    {"id": "anthropic/claude-3.7-sonnet", "name": "Claude 3.7 Sonnet"},
+    {"id": "anthropic/claude-3.5-haiku-20241022:beta", "name": "Claude 3.5 haiku"},
     {"id": "anthropic/claude-3.5-sonnet", "name": "Claude 3.5 sonnet"},
-    {"id": "anthropic/claude-3-haiku", "name": "Claude 3 haiku"},
     {"id": "nvidia/llama-3.1-nemotron-70b-instruct:free", "name": "Nvidia Llama 3.1 70B"},
     {"id": "meta-llama/llama-3.3-70b-instruct:free", "name": "Llama 3.3 70B"},
     {"id": "mistralai/mistral-small-3.1-24b-instruct:free", "name": "Mixtral 3.1 24B"},
     {"id": "mistralai/mistral-small-24b-instruct-2501:free", "name": "Mistral 3 24B"},
     {"id": "deepseek/deepseek-chat-v3-0324:free", "name": "DeepSeek v3 0324"},
     {"id": "deepseek/deepseek-r1:free", "name": "DeepSeek r1"},
-    {"id": "deepseek/deepseek-r1-distill-llama-70b:free", "name": "DeepSeek r1-distill-llama-70b"},
-    {"id": "deepseek/deepseek-r1-distill-qwen-32b:free", "name": "DeepSeek r1-distill-qwen-32b"},
 ]
 
 # Test database connection
@@ -239,11 +251,18 @@ def init_models():
 # Initialize database
 def initialize_database():
     try:
-        # Drop existing tables if they exist
-        metadata.drop_all(bind=engine)
-        print("Dropped existing tables")
+        # Drop only our application tables if they exist
+        inspector = inspect(engine)
+        existing_tables = inspector.get_table_names()
         
-        # Create tables
+        # Only drop tables that we manage
+        tables_to_drop = ['models', 'battles']
+        for table_name in tables_to_drop:
+            if table_name in existing_tables:
+                metadata.tables[table_name].drop(bind=engine)
+                print(f"Dropped table: {table_name}")
+        
+        # Create our application tables
         metadata.create_all(bind=engine)
         print("Created new tables")
         
@@ -397,49 +416,74 @@ async def battle(request: dict):
     if not model1_id or not model2_id or not question:
         raise HTTPException(status_code=400, detail="Missing required fields")
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response1 = await get_model_response(client, model1_id, question)
-            response2 = await get_model_response(client, model2_id, question)
+    try:
+        async with httpx.AsyncClient(timeout=120.0) as client:  # Increased timeout to 120 seconds
+            # Get responses concurrently
+            response1_task = get_model_response(client, model1_id, question)
+            response2_task = get_model_response(client, model2_id, question)
             
-            # Store battle in database
-            with SessionLocal() as db:
-                # Get model IDs from database
-                model1 = db.execute(
-                    select(models).where(models.c.model_id == model1_id)
-                ).first()
-                model2 = db.execute(
-                    select(models).where(models.c.model_id == model2_id)
-                ).first()
-
-                if not model1 or not model2:
-                    raise HTTPException(status_code=400, detail="Invalid model ID")
-
-                # Create new battle record
-                battle_result = db.execute(
-                    battles.insert().values(
-                        model1_id=model1.id,
-                        model2_id=model2.id,
-                        winner_id=None,
-                        question=question,
-                        response1=response1,
-                        response2=response2,
-                        result=None,
-                        created_at=func.now(),  # Use func.now() for timestamp
-                        voted_at=None
-                    )
+            try:
+                response1, response2 = await asyncio.gather(response1_task, response2_task)
+            except Exception as e:
+                print(f"Error getting model responses: {str(e)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to get responses from one or both models. Please try again."
                 )
-                db.commit()
-                battle_id = battle_result.inserted_primary_key[0]
             
-            return {
-                "battle_id": battle_id,
-                "response1": response1,
-                "response2": response2
-            }
-        except Exception as e:
-            print(f"Error in battle endpoint: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
+            # Store battle in database with timeout
+            try:
+                with SessionLocal() as db:
+                    # Get model IDs from database
+                    model1 = db.execute(
+                        select(models).where(models.c.model_id == model1_id)
+                    ).first()
+                    model2 = db.execute(
+                        select(models).where(models.c.model_id == model2_id)
+                    ).first()
+
+                    if not model1 or not model2:
+                        raise HTTPException(status_code=400, detail="Invalid model ID")
+
+                    # Create new battle record
+                    battle_result = db.execute(
+                        battles.insert().values(
+                            model1_id=model1.id,
+                            model2_id=model2.id,
+                            winner_id=None,
+                            question=question,
+                            response1=response1,
+                            response2=response2,
+                            result=None,
+                            created_at=func.now(),
+                            voted_at=None
+                        )
+                    )
+                    db.commit()
+                    battle_id = battle_result.inserted_primary_key[0]
+                
+                return {
+                    "battle_id": battle_id,
+                    "response1": response1,
+                    "response2": response2
+                }
+            except Exception as e:
+                print(f"Database error in battle endpoint: {str(e)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to store battle results. Please try again."
+                )
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504,
+            detail="Request timed out. Please try again with a shorter question."
+        )
+    except Exception as e:
+        print(f"Unexpected error in battle endpoint: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred. Please try again."
+        )
 
 @app.post("/vote")
 async def vote(request: dict):
