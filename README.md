@@ -52,6 +52,17 @@ Frontend (.env):
 ```
 NEXT_PUBLIC_API_URL=
 JFK_ARENA_TOKEN=
+
+BETTER_AUTH_SECRET=benchflow
+NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
+
+DATABASE_URL=
+
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
 ```
 
 Backend (.env):
@@ -92,6 +103,7 @@ jfkarena/
 │   │   ├── components/   # Reusable React components
 │   │   └── lib/         # Utilities and configurations
 │   ├── public/          # Static assets
+│   ├── features/         # Modules
 │   └── package.json
 ├── backend/
 │   ├── main.py          # FastAPI application
