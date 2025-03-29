@@ -24,7 +24,7 @@ export function Battle() {
     error: battleError,
     handleSubmit,
   } = useBattle({ models })
-  const { executeAsync: vote, hasSucceeded, reset } = useAction(voteAction)
+  const { executeAsync: vote, hasSucceeded, reset, isPending } = useAction(voteAction)
 
   const voted = !!hasSucceeded
 
@@ -35,6 +35,8 @@ export function Battle() {
   }, [battleId, reset])
 
   const handleVote = async (result: VoteResult) => {
+    if (isPending)
+      return
     if (!battleId || !question || !selectedModels || !selectedModels.model1 || !selectedModels.model2)
       return
 
