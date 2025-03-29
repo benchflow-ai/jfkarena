@@ -14,7 +14,6 @@ import { ResultsCard } from './ResultsCard'
 import { VotingSection } from './VotingSection'
 
 export function Battle() {
-  const { models, error: authError } = useModels()
   const {
     question,
     responses,
@@ -24,7 +23,7 @@ export function Battle() {
     selectedModels,
     error: battleError,
     handleSubmit,
-  } = useBattle({ models })
+  } = useBattle()
   const { executeAsync: vote, hasSucceeded, reset, isPending } = useAction(voteAction, {
     onError: (error) => {
       toast.error(error.error.serverError || 'Something went wrong')
@@ -48,7 +47,7 @@ export function Battle() {
     await vote({ result, model1: selectedModels.model1.id, model2: selectedModels.model2.id, battleId })
   }
 
-  const error = authError || battleError
+  const error = battleError
 
   return (
     <div className="container py-10">
