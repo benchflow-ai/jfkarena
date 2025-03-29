@@ -9,7 +9,6 @@ import { voteAction } from '../leaderboard/_actions/voteAction'
 import { BattleForm } from './BattleForm'
 import { BattleResponses } from './BattleResponses'
 import { useBattle } from './hooks/useBattle'
-import { useModels } from './hooks/useModels'
 import { ResultsCard } from './ResultsCard'
 import { VotingSection } from './VotingSection'
 
