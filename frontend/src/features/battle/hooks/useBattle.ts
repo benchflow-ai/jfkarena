@@ -76,6 +76,7 @@ export function useBattle({ models }: UseBattleProps) {
     setQuestion(questionText)
 
     try {
+      setError(null)
       const data = await trigger({
         model1: selected.model1.id,
         model2: selected.model2.id,
