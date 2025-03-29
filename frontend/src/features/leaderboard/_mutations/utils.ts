@@ -170,7 +170,6 @@ export async function updateEloRatings({ tx, model1Id, model2Id, newElo1, newElo
   model2Id: number
   newElo1: number
   newElo2: number
-  userId?: string
 }) {
   await Promise.all([
     tx.update(models)

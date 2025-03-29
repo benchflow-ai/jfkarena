@@ -155,7 +155,6 @@ export async function updatePersonalLeaderboard({ userId, result, model1, model2
           model2Id: model2Personal.id!,
           newElo1,
           newElo2,
-          userId,
         })
       }
 
