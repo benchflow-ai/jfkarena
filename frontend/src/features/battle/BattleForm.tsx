@@ -1,8 +1,9 @@
 'use client'
 import { QuestionCarousel } from '@/components/QuestionTemplates'
 import { Button } from '@/components/ui/button'
-import { useEffect } from 'react'
+import { cn } from '@/lib/utils'
 
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { TokenProgress } from './components/TokenProgress'
 import { APPROX_CHARS_PER_TOKEN, MAX_CHARS, MAX_TOKENS } from './constants'
@@ -62,7 +63,7 @@ export function BattleForm({ onSubmit, loading }: BattleFormProps) {
             },
           })}
           placeholder="Ask a question about the JFK files..."
-          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-300 min-h-[100px] pr-24 pb-10"
+          className={cn('p-2 pb-8 sm:px-4 sm:py-3 sm:pr-24 sm:pb-10', 'w-full rounded-lg border border-zinc-200 bg-white  text-sm focus:outline-none focus:ring-1 focus:ring-zinc-300 min-h-[100px] ')}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault()
