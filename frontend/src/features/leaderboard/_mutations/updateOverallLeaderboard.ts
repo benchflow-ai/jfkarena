@@ -34,7 +34,7 @@ export async function updateOverallLeaderboard({ result, model1, model2 }: {
           model2: model2Data,
           model1Won,
         })
-        await updateEloRatings({ tx, model1Id: model1, model2Id: model2, newElo1, newElo2 })
+        await updateEloRatings({ tx, model1Id: model1Data.id!, model2Id: model2Data.id!, newElo1, newElo2 })
       }
 
       return { status: 'success' }
