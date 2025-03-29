@@ -16,17 +16,17 @@ export default function Navigation() {
 
   return (
     <nav className="fixed top-0 z-10 w-full border-b bg-background/80 backdrop-blur-sm">
-      <div className="container flex h-14 items-center">
+      <div className="px-2 sm:px-6 flex h-14 items-center">
         <div className="mr-4 flex">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="hidden sm:flex items-center space-x-2">
             <span className="text-xl">⚔️</span>
-            <span className="font-medium">JFK RAG Arena</span>
+            <span className="font-medium whitespace-nowrap">JFK RAG Arena</span>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <Link className="flex items-center py-2.5 pl-2 mr-6" target="_blank" href="https://discord.gg/mZ9Rc8q8W3">
+          <Link className="flex items-center py-2.5 sm:pl-2 mr-6" target="_blank" href="https://discord.gg/mZ9Rc8q8W3">
             <div className="flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className="shrink-0" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   fillRule="evenodd"
                   clipRule="evenodd"
@@ -34,7 +34,7 @@ export default function Navigation() {
                   fill="#5865F2"
                 />
               </svg>
-              <p className="cursor-pointer text-sm text-muted-foreground font-medium">Join our discord</p>
+              <p className="cursor-pointer text-sm text-muted-foreground font-medium hidden sm:block">Join our discord</p>
             </div>
           </Link>
           <nav className="flex items-center space-x-6 mr-4">

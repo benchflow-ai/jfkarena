@@ -75,8 +75,8 @@ export function BattleForm({ onSubmit, loading }: BattleFormProps) {
         <div className="absolute bottom-3 left-3">
           <TokenProgress estimatedTokens={estimatedTokens} />
         </div>
-        <div className="absolute bottom-3 right-3 flex items-end gap-3">
-          <div className="text-xs text-zinc-500">
+        <div className="absolute bottom-3 right-3 items-end gap-3 ">
+          <div className="text-xs text-zinc-500 hidden sm:flex">
             Shift + Enter for new line
           </div>
           <Button

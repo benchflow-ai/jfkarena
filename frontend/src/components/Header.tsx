@@ -6,8 +6,7 @@ export default function Header() {
   return (
     <div className="flex flex-col items-center space-y-2 text-center">
       <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-        JFK RAG Battle Arena
-
+        <span className="whitespace-nowrap">JFK RAG Battle Arena</span>
         <div>
           <GitHubButton href="https://github.com/benchflow-ai/jfkarena" data-color-scheme="no-preference: light; light: light; dark: dark;" aria-label="Star benchflow-ai/jfkarena on GitHub">Star</GitHubButton>
         </div>
