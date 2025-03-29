@@ -30,8 +30,13 @@ export const auth = betterAuth({
       return
     }
 
-    await db.update(battles).set({
-      userId: newUserId,
-    }).where(eq(battles.userId, oldUserId))
+    try {
+      await db.update(battles).set({
+        userId: newUserId,
+      }).where(eq(battles.userId, oldUserId))
+    }
+    catch (error) {
+      console.error('Error syncing battles', error)
+    }
   } })],
 })
