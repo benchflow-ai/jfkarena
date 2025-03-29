@@ -1,5 +1,6 @@
 import type { BattleResponse, Model, SelectedModels } from '../types'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import useSWRMutation from 'swr/mutation'
 
 interface UseBattleProps {
@@ -86,8 +87,10 @@ export function useBattle({ models }: UseBattleProps) {
       setIsFlipped(Math.random() > 0.5)
     }
     catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to get responses'
       console.error('Error details:', error)
-      setError('Failed to get responses')
+      toast.error(message)
+      setError(message)
     }
   }
 
