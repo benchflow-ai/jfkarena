@@ -50,7 +50,7 @@ export function Battle() {
   return (
     <div className="container py-10">
 
-      <div className="py-6 grid place-items-center">
+      <div className="pb-6 pt-12 grid place-items-center">
         <Image className="w-[400px] border border-gray-200" src={jfk} alt="JFK" />
       </div>
 
