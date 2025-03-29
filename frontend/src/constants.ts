@@ -5,7 +5,7 @@ export const MODELS = [
   { id: 'openai/gpt-4-turbo-preview', name: 'GPT-4 Turbo' },
   { id: 'openai/gpt-4', name: 'GPT-4' },
   { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash' },
-  { id: 'google/gemini-2.5-pro-exp-03-25:free', name: 'Gemini 2.5 Pro' },
+  // { id: 'google/gemini-2.5-pro-exp-03-25:free', name: 'Gemini 2.5 Pro' },
   { id: 'qwen/qwen2.5-vl-32b-instruct:free', name: 'qwen2.5-vl-32b-instruct' },
   { id: 'qwen/qwen2.5-vl-72b-instruct:free', name: 'qwen2.5-vl-72b-instruct' },
   { id: 'anthropic/claude-3.7-sonnet', name: 'Claude 3.7 Sonnet' },
