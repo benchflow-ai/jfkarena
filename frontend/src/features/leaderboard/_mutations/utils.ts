@@ -4,7 +4,7 @@ import { DEFAULT_ELO } from '@/constants'
 import { db } from '@/db'
 import { battles } from '@/db/schema/battles'
 import { models } from '@/db/schema/models'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, isNull, sql } from 'drizzle-orm'
 
 const K_FACTOR = 32
 
@@ -97,52 +97,68 @@ export async function updateModelStats({ tx, winner, model1Id, model2Id, userId 
   model2Id: string
   userId?: string
 }) {
-  const whereClause = (modelId: string) => {
-    const conditions = [eq(models.modelId, modelId)]
-    if (userId) {
-      conditions.push(eq(models.userId, userId))
-    }
-    return conditions.length > 1 ? and(...conditions) : conditions[0]
-  }
-
   if (winner === 'model1') {
     await Promise.all([
       tx.update(models)
         .set({ wins: sql`${models.wins} + 1` })
-        .where(whereClause(model1Id)),
+        .where(and(
+          eq(models.modelId, model1Id),
+          userId ? eq(models.userId, userId) : isNull(models.userId),
+        )),
       tx.update(models)
         .set({ losses: sql`${models.losses} + 1` })
-        .where(whereClause(model2Id)),
+        .where(and(
+          eq(models.modelId, model2Id),
+          userId ? eq(models.userId, userId) : isNull(models.userId),
+        )),
     ])
   }
   else if (winner === 'model2') {
     await Promise.all([
       tx.update(models)
         .set({ wins: sql`${models.wins} + 1` })
-        .where(whereClause(model2Id)),
+        .where(and(
+          eq(models.modelId, model2Id),
+          userId ? eq(models.userId, userId) : isNull(models.userId),
+        )),
       tx.update(models)
         .set({ losses: sql`${models.losses} + 1` })
-        .where(whereClause(model1Id)),
+        .where(and(
+          eq(models.modelId, model1Id),
+          userId ? eq(models.userId, userId) : isNull(models.userId),
+        )),
     ])
   }
   else if (winner === 'draw') {
     await Promise.all([
       tx.update(models)
         .set({ draws: sql`${models.draws} + 1` })
-        .where(whereClause(model1Id)),
+        .where(and(
+          eq(models.modelId, model1Id),
+          userId ? eq(models.userId, userId) : isNull(models.userId),
+        )),
       tx.update(models)
         .set({ draws: sql`${models.draws} + 1` })
-        .where(whereClause(model2Id)),
+        .where(and(
+          eq(models.modelId, model2Id),
+          userId ? eq(models.userId, userId) : isNull(models.userId),
+        )),
     ])
   }
   else {
     await Promise.all([
       tx.update(models)
         .set({ invalid: sql`${models.invalid} + 1` })
-        .where(whereClause(model1Id)),
+        .where(and(
+          eq(models.modelId, model1Id),
+          userId ? eq(models.userId, userId) : isNull(models.userId),
+        )),
       tx.update(models)
         .set({ invalid: sql`${models.invalid} + 1` })
-        .where(whereClause(model2Id)),
+        .where(and(
+          eq(models.modelId, model2Id),
+          userId ? eq(models.userId, userId) : isNull(models.userId),
+        )),
     ])
   }
 }
