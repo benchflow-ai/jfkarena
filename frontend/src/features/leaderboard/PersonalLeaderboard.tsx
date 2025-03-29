@@ -1,8 +1,10 @@
-import { Card } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { db } from '@/db'
 import { models } from '@/db/schema/models'
 import { desc, eq } from 'drizzle-orm'
+
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getSession } from '../auth/get-session'
 
@@ -21,6 +23,21 @@ export async function PersonalLeaderboard() {
     orderBy: [desc(models.elo)],
   })
 
+  if (data.length === 0) {
+    return (
+      <Card>
+        <CardContent className="grid place-items-center">
+          <p className="mt-8">
+            Vote a
+            {' '}
+            <Link href="/battle" className="underline">battle</Link>
+            {' '}
+            to see your personal leaderboard
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
   return (
     <Card>
       <Table>

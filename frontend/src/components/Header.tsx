@@ -14,6 +14,9 @@ export default function Header() {
         <span>Powered by</span>
         <img src="/logo.svg" alt="BenchFlow Logo" className="h-4 w-4" />
         <span>BenchFlow</span>
+        <span className="mx-1">×</span>
+        <img src="/langchain.svg" alt="LangChain Logo" className="h-5 w-5" />
+        <span>LangChain</span>
       </a>
     </div>
   )

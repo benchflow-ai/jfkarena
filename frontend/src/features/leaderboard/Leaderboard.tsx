@@ -14,6 +14,7 @@ import { desc } from 'drizzle-orm'
 export default async function Leaderboard() {
   const data = await db.query.models.findMany({
     orderBy: [desc(models.elo)],
+    where: (fields, { isNull }) => isNull(fields.userId),
   })
 
   return (
