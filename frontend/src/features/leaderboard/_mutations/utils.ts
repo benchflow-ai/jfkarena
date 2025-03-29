@@ -26,12 +26,21 @@ export function calculateEloChange({ model1, model2, model1Won }: {
   const e1 = r1 / (r1 + r2)
   const e2 = r2 / (r1 + r2)
 
-  const score1 = model1Won ? 1 : 0
-  const score2 = model1Won ? 0 : 1
+  let newElo1: number
+  let newElo2: number
+
+  if (model1Won) {
+    newElo1 = elo1 + K_FACTOR * (1 - e1)
+    newElo2 = elo2 + K_FACTOR * (0 - e2)
+  }
+  else {
+    newElo1 = elo1 + K_FACTOR * (0 - e1)
+    newElo2 = elo2 + K_FACTOR * (1 - e2)
+  }
 
   return {
-    newElo1: elo1 + K_FACTOR * (score1 - e1),
-    newElo2: elo2 + K_FACTOR * (score2 - e2),
+    newElo1,
+    newElo2,
   }
 }
 

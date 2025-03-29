@@ -1,10 +1,8 @@
-import type { BattleResponse, Model, SelectedModels } from '../types'
+import type { BattleResponse, SelectedModels } from '../types'
+import { MODELS } from '@/constants'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import useSWRMutation from 'swr/mutation'
-
-interface UseBattleProps {
-  models: Model[]
-}
 
 async function sendBattleRequest(url: string, { arg }: { arg: { model1: string, model2: string, question: string } }) {
   const response = await fetch(url, {
@@ -28,7 +26,7 @@ async function sendBattleRequest(url: string, { arg }: { arg: { model1: string, 
   return response.json()
 }
 
-export function useBattle({ models }: UseBattleProps) {
+export function useBattle() {
   const [question, setQuestion] = useState('')
   const [responses, setResponses] = useState<BattleResponse | null>(null)
   const [isFlipped, setIsFlipped] = useState(false)
@@ -42,18 +40,17 @@ export function useBattle({ models }: UseBattleProps) {
   const { trigger, isMutating: loading } = useSWRMutation('/api/proxy/battle', sendBattleRequest)
 
   const selectRandomModels = () => {
-    if (models.length < 2) {
+    if (MODELS.length < 2) {
       console.warn('Not enough models available')
       return null
     }
 
-    const availableModels = [...models]
-    const model1Index = Math.floor(Math.random() * availableModels.length)
-    const model1 = availableModels[model1Index]
-    availableModels.splice(model1Index, 1)
+    const model1Index = Math.floor(Math.random() * MODELS.length)
+    const model1 = MODELS[model1Index]
+    MODELS.splice(model1Index, 1)
 
-    const model2Index = Math.floor(Math.random() * availableModels.length)
-    const model2 = availableModels[model2Index]
+    const model2Index = Math.floor(Math.random() * MODELS.length)
+    const model2 = MODELS[model2Index]
 
     return { model1, model2 }
   }
@@ -75,6 +72,7 @@ export function useBattle({ models }: UseBattleProps) {
     setQuestion(questionText)
 
     try {
+      setError(null)
       const data = await trigger({
         model1: selected.model1.id,
         model2: selected.model2.id,
@@ -86,8 +84,10 @@ export function useBattle({ models }: UseBattleProps) {
       setIsFlipped(Math.random() > 0.5)
     }
     catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to get responses'
       console.error('Error details:', error)
-      setError('Failed to get responses')
+      toast.error(message)
+      setError(message)
     }
   }
 

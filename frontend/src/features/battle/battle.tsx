@@ -4,16 +4,15 @@ import type { VoteResult } from './types'
 import Header from '@/components/Header'
 import { useAction } from 'next-safe-action/hooks'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 import { voteAction } from '../leaderboard/_actions/voteAction'
 import { BattleForm } from './BattleForm'
 import { BattleResponses } from './BattleResponses'
 import { useBattle } from './hooks/useBattle'
-import { useModels } from './hooks/useModels'
 import { ResultsCard } from './ResultsCard'
 import { VotingSection } from './VotingSection'
 
 export function Battle() {
-  const { models, error: authError } = useModels()
   const {
     question,
     responses,
@@ -23,8 +22,12 @@ export function Battle() {
     selectedModels,
     error: battleError,
     handleSubmit,
-  } = useBattle({ models })
-  const { executeAsync: vote, hasSucceeded, reset } = useAction(voteAction)
+  } = useBattle()
+  const { executeAsync: vote, hasSucceeded, reset, isPending } = useAction(voteAction, {
+    onError: (error) => {
+      toast.error(error.error.serverError || 'Something went wrong')
+    },
+  })
 
   const voted = !!hasSucceeded
 
@@ -35,13 +38,15 @@ export function Battle() {
   }, [battleId, reset])
 
   const handleVote = async (result: VoteResult) => {
+    if (isPending)
+      return
     if (!battleId || !question || !selectedModels || !selectedModels.model1 || !selectedModels.model2)
       return
 
     await vote({ result, model1: selectedModels.model1.id, model2: selectedModels.model2.id, battleId })
   }
 
-  const error = authError || battleError
+  const error = battleError
 
   return (
     <div className="container py-10">

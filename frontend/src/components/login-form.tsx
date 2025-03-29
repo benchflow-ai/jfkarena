@@ -67,7 +67,7 @@ export function LoginForm({
             </svg>
             Continue with Github
           </Button>
-          {/* <Button
+          <Button
             variant="outline"
             className="w-full"
             onClick={() => {
@@ -81,7 +81,7 @@ export function LoginForm({
               />
             </svg>
             Continue with Google
-          </Button> */}
+          </Button>
         </div>
       </div>
 
