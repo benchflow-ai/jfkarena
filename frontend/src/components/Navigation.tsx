@@ -24,7 +24,7 @@ export default function Navigation() {
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <Link className="flex items-center py-2.5 sm:pl-2 mr-6" target="_blank" href="https://discord.gg/mZ9Rc8q8W3">
+          <Link className="flex items-center py-2.5 sm:pl-2 mr-2" target="_blank" href="https://discord.gg/mZ9Rc8q8W3">
             <div className="flex items-center gap-2">
               <svg className="shrink-0" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -37,7 +37,7 @@ export default function Navigation() {
               <p className="cursor-pointer text-sm text-muted-foreground font-medium hidden sm:block">Join our discord</p>
             </div>
           </Link>
-          <nav className="flex items-center space-x-6 mr-4">
+          <nav className="flex items-center space-x-4 mr-10">
             <Link
               href="/battle"
               className={cn(

@@ -8,7 +8,7 @@ export default function Header() {
       <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
         <span className="whitespace-nowrap">JFK RAG Battle Arena</span>
         <div>
-          <GitHubButton href="https://github.com/benchflow-ai/jfkarena" data-color-scheme="no-preference: light; light: light; dark: dark;" aria-label="Star benchflow-ai/jfkarena on GitHub">Star</GitHubButton>
+          <GitHubButton href="https://github.com/benchflow-ai/jfkarena" data-color-scheme="no-preference: light; light: light; dark: dark;" aria-label="Star benchflow-ai/jfkarena on GitHub">Star us</GitHubButton>
         </div>
       </h1>
       <p className="text-muted-foreground">
@@ -19,19 +19,6 @@ export default function Header() {
         </Link>
         .
       </p>
-      <a
-        href="https://benchflow.ai"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <span>Powered by</span>
-        <img src="/logo.svg" alt="BenchFlow Logo" className="h-4 w-4" />
-        <span>BenchFlow</span>
-        <span className="mx-1">×</span>
-        <img src="/langchain.svg" alt="LangChain Logo" className="h-5 w-5" />
-        <span>LangChain</span>
-      </a>
     </div>
   )
 }
