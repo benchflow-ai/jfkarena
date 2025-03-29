@@ -44,8 +44,26 @@ const nextConfig = {
           },
         ],
       },
-    ]
+    ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+      {
+        source: "/ingest/decide",
+        destination: "https://us.i.posthog.com/decide",
+      },
+    ];
+  },
+  // This is required to support PostHog trailing slash API requests
+  skipTrailingSlashRedirect: true,
   experimental: {
     optimizePackageImports: ['@radix-ui/react-progress', '@radix-ui/react-select', '@radix-ui/react-separator', '@radix-ui/react-slot', '@radix-ui/react-tabs'],
     serverActions: {
@@ -61,6 +79,6 @@ const nextConfig = {
       responseLimit: '60s',
     },
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;
