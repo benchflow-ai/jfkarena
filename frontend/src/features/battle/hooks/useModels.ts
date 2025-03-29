@@ -13,7 +13,7 @@ async function fetchModels() {
 export function useModels() {
   const { data: session } = useSession()
   const isSignedIn = !!session?.user.id
-  const { data: models = [], error } = useSWR<Model[]>(isSignedIn ? '/api/proxy/models' : null, fetchModels)
+  const { data: models = [], error } = useSWR<Model[]>(isSignedIn ? '/api/proxy/models' : null, fetchModels, { revalidateOnFocus: false })
 
   return {
     models,
