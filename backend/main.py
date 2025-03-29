@@ -337,7 +337,7 @@ async def get_model_response(client: httpx.AsyncClient, model_id: str, question:
     
 If relevant context is provided, use it to inform your response, but do not simply repeat the context. Synthesize the information and provide a thoughtful answer.
 
-Important: Your response must not exceed 2000 tokens."""
+Important: Your response must not exceed 2000 tokens. And you should reply in english and plain text."""
 
     user_prompt = f"""Context: {context}
 
