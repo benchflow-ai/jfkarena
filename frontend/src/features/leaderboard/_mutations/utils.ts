@@ -164,28 +164,19 @@ export async function updateModelStats({ tx, winner, model1Id, model2Id, userId 
 }
 
 // Update ELO ratings for both models
-export async function updateEloRatings({ tx, model1Id, model2Id, newElo1, newElo2, userId }: {
+export async function updateEloRatings({ tx, model1Id, model2Id, newElo1, newElo2 }: {
   tx: TransactionType
-  model1Id: string
-  model2Id: string
+  model1Id: number
+  model2Id: number
   newElo1: number
   newElo2: number
-  userId?: string
 }) {
-  const whereClause = (modelId: string) => {
-    const conditions = [eq(models.modelId, modelId)]
-    if (userId) {
-      conditions.push(eq(models.userId, userId))
-    }
-    return conditions.length > 1 ? and(...conditions) : conditions[0]
-  }
-
   await Promise.all([
     tx.update(models)
       .set({ elo: newElo1 })
-      .where(whereClause(model1Id)),
+      .where(eq(models.id, model1Id)),
     tx.update(models)
       .set({ elo: newElo2 })
-      .where(whereClause(model2Id)),
+      .where(eq(models.id, model2Id)),
   ])
 }

@@ -151,11 +151,10 @@ export async function updatePersonalLeaderboard({ userId, result, model1, model2
         })
         await updateEloRatings({
           tx,
-          model1Id: model1Personal.modelId!,
-          model2Id: model2Personal.modelId!,
+          model1Id: model1Personal.id!,
+          model2Id: model2Personal.id!,
           newElo1,
           newElo2,
-          userId,
         })
       }
 

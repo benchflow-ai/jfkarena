@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Navigation from '@/components/Navigation'
+import { PostHogProvider } from '@/components/PostHogProvider'
 import { AnonymouseSessionProvider } from '@/features/auth/AnonymouseSessionProvider'
 import { Inter } from 'next/font/google'
 import { Toaster } from 'sonner'
@@ -23,12 +24,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
-          <AnonymouseSessionProvider />
-          <Navigation />
-          <main className="py-8 px-4 sm:px-6 lg:px-8">{children}</main>
-          <Toaster />
-        </div>
+        <PostHogProvider>
+          <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
+            <AnonymouseSessionProvider />
+            <Navigation />
+            <main className="py-8 px-4 sm:px-6 lg:px-8">{children}</main>
+            <Toaster />
+          </div>
+        </PostHogProvider>
       </body>
     </html>
   )
