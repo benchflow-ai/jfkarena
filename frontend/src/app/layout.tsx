@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Navigation from '@/components/Navigation'
 import { AnonymouseSessionProvider } from '@/features/auth/AnonymouseSessionProvider'
 import { Inter } from 'next/font/google'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -26,6 +27,7 @@ export default function RootLayout({
           <AnonymouseSessionProvider />
           <Navigation />
           <main className="py-8 px-4 sm:px-6 lg:px-8">{children}</main>
+          <Toaster />
         </div>
       </body>
     </html>

@@ -4,6 +4,7 @@ import type { VoteResult } from './types'
 import Header from '@/components/Header'
 import { useAction } from 'next-safe-action/hooks'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 import { voteAction } from '../leaderboard/_actions/voteAction'
 import { BattleForm } from './BattleForm'
 import { BattleResponses } from './BattleResponses'
@@ -24,7 +25,11 @@ export function Battle() {
     error: battleError,
     handleSubmit,
   } = useBattle({ models })
-  const { executeAsync: vote, hasSucceeded, reset, isPending } = useAction(voteAction)
+  const { executeAsync: vote, hasSucceeded, reset, isPending } = useAction(voteAction, {
+    onError: (error) => {
+      toast.error(error.error.serverError || 'Something went wrong')
+    },
+  })
 
   const voted = !!hasSucceeded
 
