@@ -20,4 +20,6 @@ export const voteAction = authorizedActionClient.schema(z.object({
     updateOverallLeaderboard({ result, model1, model2 }),
     updatePersonalLeaderboard({ result, model1, model2, userId }),
   ])
+
+  return { success: true }
 })

@@ -3,7 +3,7 @@
 import type { VoteResult } from './types'
 import Header from '@/components/Header'
 import { useAction } from 'next-safe-action/hooks'
-import { useEffect } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { voteAction } from '../leaderboard/_actions/voteAction'
 import { BattleForm } from './BattleForm'
@@ -23,19 +23,16 @@ export function Battle() {
     error: battleError,
     handleSubmit,
   } = useBattle()
-  const { executeAsync: vote, hasSucceeded, reset, isPending } = useAction(voteAction, {
+  const [voted, setVoted] = useState(false)
+  const { executeAsync: vote, isPending } = useAction(voteAction, {
+    onSuccess() {
+      setVoted(true)
+    },
     onError: (error) => {
+      setVoted(false)
       toast.error(error.error.serverError || 'Something went wrong')
     },
   })
-
-  const voted = !!hasSucceeded
-
-  useEffect(() => {
-    if (battleId === null) {
-      reset()
-    }
-  }, [battleId, reset])
 
   const handleVote = async (result: VoteResult) => {
     if (isPending)
@@ -60,7 +57,13 @@ export function Battle() {
           </div>
         )}
 
-        <BattleForm onSubmit={handleSubmit} loading={loading} />
+        <BattleForm
+          onSubmit={(q) => {
+            setVoted(false)
+            return handleSubmit(q)
+          }}
+          loading={loading}
+        />
 
         <BattleResponses
           responses={responses}
@@ -72,6 +75,7 @@ export function Battle() {
         <VotingSection
           responses={responses}
           voted={voted}
+          isVoting={isPending}
           onVote={handleVote}
         />
 

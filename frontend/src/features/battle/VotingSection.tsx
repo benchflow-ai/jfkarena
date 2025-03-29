@@ -2,22 +2,19 @@
 
 import type { BattleResponse, VoteResult } from './types'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
 
 interface VotingSectionProps {
   responses: BattleResponse | null
   voted: boolean
+  isVoting: boolean
   onVote: (result: VoteResult) => void
 }
 
-export function VotingSection({ responses, voted, onVote }: VotingSectionProps) {
-  const [selectedVote, setSelectedVote] = useState<VoteResult | null>(null)
-
+export function VotingSection({ responses, voted, isVoting, onVote }: VotingSectionProps) {
   if (!responses || voted)
     return null
 
   const handleVote = (result: VoteResult) => {
-    setSelectedVote(result)
     onVote(result)
   }
 
@@ -27,7 +24,7 @@ export function VotingSection({ responses, voted, onVote }: VotingSectionProps) 
         variant="outline"
         size="sm"
         onClick={() => handleVote('model1')}
-        disabled={voted || selectedVote !== null}
+        disabled={voted || isVoting}
         className="text-xs"
       >
         Model A Wins
@@ -36,7 +33,7 @@ export function VotingSection({ responses, voted, onVote }: VotingSectionProps) 
         variant="outline"
         size="sm"
         onClick={() => handleVote('model2')}
-        disabled={voted || selectedVote !== null}
+        disabled={voted || isVoting}
         className="text-xs"
       >
         Model B Wins
@@ -45,7 +42,7 @@ export function VotingSection({ responses, voted, onVote }: VotingSectionProps) 
         variant="outline"
         size="sm"
         onClick={() => handleVote('draw')}
-        disabled={voted || selectedVote !== null}
+        disabled={voted || isVoting}
         className="text-xs"
       >
         Draw
@@ -54,7 +51,7 @@ export function VotingSection({ responses, voted, onVote }: VotingSectionProps) 
         variant="outline"
         size="sm"
         onClick={() => handleVote('invalid')}
-        disabled={voted || selectedVote !== null}
+        disabled={voted || isVoting}
         className="text-xs"
       >
         Invalid
