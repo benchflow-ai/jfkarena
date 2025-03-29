@@ -1,5 +1,6 @@
 import type { Model, VoteResult } from '../types'
 import { useState } from 'react'
+import { useSession } from '@/features/auth/use-session'
 
 interface UseVotingProps {
   battleId: number | null
@@ -14,6 +15,7 @@ interface UseVotingProps {
 export function useVoting({ battleId, question, selectedModels, isFlipped }: UseVotingProps) {
   const [voted, setVoted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { data: session } = useSession()
 
   const handleVote = async (result: VoteResult) => {
     if (voted || !selectedModels.model1 || !selectedModels.model2 || !battleId)
@@ -36,6 +38,7 @@ export function useVoting({ battleId, question, selectedModels, isFlipped }: Use
           model2: selectedModels.model2.id,
           battle_id: battleId,
           question,
+          user_id: session?.user?.id,
         }),
       })
 

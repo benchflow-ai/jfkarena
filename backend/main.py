@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, validator
-from typing import Dict
+from typing import Dict, Optional
 import os
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
@@ -117,6 +117,18 @@ if not DATABASE_URL:
     raise Exception("DATABASE_URL environment variable is not set")
 
 print(f"Connecting to database: {DATABASE_URL}")
+connect_args = {}
+if DATABASE_URL.startswith('sqlite'):
+    connect_args = {"check_same_thread": False}
+else:
+    connect_args = {
+        "connect_timeout": 10,  # Connection timeout
+        "keepalives": 1,        # Enable keepalive
+        "keepalives_idle": 30,  # Keepalive idle time
+        "keepalives_interval": 10,  # Keepalive interval
+        "keepalives_count": 5,   # Keepalive retry count
+    }
+
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,  # Automatically check if connection is valid
@@ -124,13 +136,7 @@ engine = create_engine(
     pool_size=5,         # Connection pool size
     max_overflow=10,     # Maximum overflow connections
     pool_timeout=30,     # Connection timeout
-    connect_args={
-        "connect_timeout": 10,  # Connection timeout
-        "keepalives": 1,        # Enable keepalive
-        "keepalives_idle": 30,  # Keepalive idle time
-        "keepalives_interval": 10,  # Keepalive interval
-        "keepalives_count": 5,   # Keepalive retry count
-    }
+    connect_args=connect_args
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -221,26 +227,33 @@ def check_tables_exist():
 
 # Initialize models in the database
 def init_models():
+    print("Initializing models...")
     with SessionLocal() as db:
         try:
+            existing_models = set()
+            try:
+                result = db.execute(select(models.c.model_id).where(models.c.user_id.is_(None)))
+                existing_models = {row[0] for row in result}
+            except Exception as e:
+                print(f"Error checking existing models: {e}")
+            
+            models_to_insert = []
             for model in SUPPORTED_MODELS:
-                # Check if model exists
-                result = db.execute(
-                    select(models).where(models.c.model_id == model["id"])
-                ).first()
-                if not result:
-                    # If model doesn't exist, add it
-                    db.execute(
-                        models.insert().values(
-                            model_id=model["id"],
-                            name=model["name"],
-                            wins=0,
-                            losses=0,
-                            draws=0,
-                            invalid=0,
-                            elo=1500.0
-                        )
-                    )
+                if model["id"] not in existing_models:
+                    models_to_insert.append({
+                        "model_id": model["id"],
+                        "name": model["name"],
+                        "wins": 0,
+                        "losses": 0,
+                        "draws": 0,
+                        "invalid": 0,
+                        "elo": 1500.0,
+                        "user_id": None  # Explicitly set user_id to None for global models
+                    })
+            
+            if models_to_insert:
+                db.execute(models.insert(), models_to_insert)
+                
             db.commit()
             print("Models initialized successfully!")
         except Exception as e:
@@ -485,24 +498,48 @@ async def battle(request: dict):
             detail="An unexpected error occurred. Please try again."
         )
 
+def ensure_user_model_exists(db, model_id, model_name, user_id):
+    user_model = db.execute(
+        select(models).where(models.c.model_id == model_id, models.c.user_id == user_id)
+    ).first()
+    
+    if not user_model:
+        db.execute(
+            models.insert().values(
+                model_id=model_id,
+                name=model_name,
+                wins=0,
+                losses=0,
+                draws=0,
+                invalid=0,
+                elo=1500.0,
+                user_id=user_id
+            )
+        )
+        user_model = db.execute(
+            select(models).where(models.c.model_id == model_id, models.c.user_id == user_id)
+        ).first()
+    
+    return user_model
+
 @app.post("/vote")
 async def vote(request: dict):
     result = request.get("result")
     model1_id = request.get("model1")
     model2_id = request.get("model2")
     battle_id = request.get("battle_id")
+    user_id = request.get("user_id")  # Add user_id parameter
     
     if not result or not model1_id or not model2_id or not battle_id:
         raise HTTPException(status_code=400, detail="Missing required fields")
     
     with SessionLocal() as db:
         try:
-            # Get current status of both models
             model1 = db.execute(
-                select(models).where(models.c.model_id == model1_id)
+                select(models).where(models.c.model_id == model1_id, models.c.user_id.is_(None))
             ).first()
             model2 = db.execute(
-                select(models).where(models.c.model_id == model2_id)
+                select(models).where(models.c.model_id == model2_id, models.c.user_id.is_(None))
             ).first()
             
             if not model1 or not model2:
@@ -529,104 +566,123 @@ async def vote(request: dict):
                 .values(
                     winner_id=winner_id,
                     result=battle_result,
-                    voted_at=func.now()  # Use func.now() for timestamp
+                    voted_at=func.now(),  # Use func.now() for timestamp
+                    user_id=user_id  # Add user_id to battle record
                 )
             )
             
-            # Update statistics
-            if result == "model1":
-                # Update win/loss counts
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model1_id)
-                    .values(wins=models.c.wins + 1)
-                )
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model2_id)
-                    .values(losses=models.c.losses + 1)
-                )
+            def update_models_for_result(m1, m2, use_user_id=None):
+                where_clause1 = models.c.model_id == model1_id
+                where_clause2 = models.c.model_id == model2_id
                 
-                # Calculate new ELO scores
-                r1 = 10 ** (model1.elo / 400)
-                r2 = 10 ** (model2.elo / 400)
-                e1 = r1 / (r1 + r2)
-                e2 = r2 / (r1 + r2)
+                if use_user_id is not None:
+                    where_clause1 = models.c.model_id == model1_id, models.c.user_id == use_user_id
+                    where_clause2 = models.c.model_id == model2_id, models.c.user_id == use_user_id
+                else:
+                    where_clause1 = models.c.model_id == model1_id, models.c.user_id.is_(None)
+                    where_clause2 = models.c.model_id == model2_id, models.c.user_id.is_(None)
                 
-                new_elo1 = model1.elo + K_FACTOR * (1 - e1)
-                new_elo2 = model2.elo + K_FACTOR * (0 - e2)
+                if result == "model1":
+                    # Update win/loss counts
+                    db.execute(
+                        models.update()
+                        .where(*where_clause1)
+                        .values(wins=models.c.wins + 1)
+                    )
+                    db.execute(
+                        models.update()
+                        .where(*where_clause2)
+                        .values(losses=models.c.losses + 1)
+                    )
+                    
+                    # Calculate new ELO scores
+                    r1 = 10 ** (m1.elo / 400)
+                    r2 = 10 ** (m2.elo / 400)
+                    e1 = r1 / (r1 + r2)
+                    e2 = r2 / (r1 + r2)
+                    
+                    new_elo1 = m1.elo + K_FACTOR * (1 - e1)
+                    new_elo2 = m2.elo + K_FACTOR * (0 - e2)
+                    
+                    # Update ELO scores
+                    db.execute(
+                        models.update()
+                        .where(*where_clause1)
+                        .values(elo=new_elo1)
+                    )
+                    db.execute(
+                        models.update()
+                        .where(*where_clause2)
+                        .values(elo=new_elo2)
+                    )
+                    
+                elif result == "model2":
+                    # Update win/loss counts
+                    db.execute(
+                        models.update()
+                        .where(*where_clause2)
+                        .values(wins=models.c.wins + 1)
+                    )
+                    db.execute(
+                        models.update()
+                        .where(*where_clause1)
+                        .values(losses=models.c.losses + 1)
+                    )
+                    
+                    # Calculate new ELO scores
+                    r1 = 10 ** (m1.elo / 400)
+                    r2 = 10 ** (m2.elo / 400)
+                    e1 = r1 / (r1 + r2)
+                    e2 = r2 / (r1 + r2)
+                    
+                    new_elo1 = m1.elo + K_FACTOR * (0 - e1)
+                    new_elo2 = m2.elo + K_FACTOR * (1 - e2)
+                    
+                    # Update ELO scores
+                    db.execute(
+                        models.update()
+                        .where(*where_clause1)
+                        .values(elo=new_elo1)
+                    )
+                    db.execute(
+                        models.update()
+                        .where(*where_clause2)
+                        .values(elo=new_elo2)
+                    )
+                    
+                elif result == "draw":
+                    # Update draw counts
+                    db.execute(
+                        models.update()
+                        .where(*where_clause1)
+                        .values(draws=models.c.draws + 1)
+                    )
+                    db.execute(
+                        models.update()
+                        .where(*where_clause2)
+                        .values(draws=models.c.draws + 1)
+                    )
+                    
+                elif result == "invalid":
+                    # Update invalid counts
+                    db.execute(
+                        models.update()
+                        .where(*where_clause1)
+                        .values(invalid=models.c.invalid + 1)
+                    )
+                    db.execute(
+                        models.update()
+                        .where(*where_clause2)
+                        .values(invalid=models.c.invalid + 1)
+                    )
+            
+            update_models_for_result(model1, model2)
+            
+            if user_id:
+                user_model1 = ensure_user_model_exists(db, model1_id, model1.name, user_id)
+                user_model2 = ensure_user_model_exists(db, model2_id, model2.name, user_id)
                 
-                # Update ELO scores
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model1_id)
-                    .values(elo=new_elo1)
-                )
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model2_id)
-                    .values(elo=new_elo2)
-                )
-                
-            elif result == "model2":
-                # Update win/loss counts
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model2_id)
-                    .values(wins=models.c.wins + 1)
-                )
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model1_id)
-                    .values(losses=models.c.losses + 1)
-                )
-                
-                # Calculate new ELO scores
-                r1 = 10 ** (model1.elo / 400)
-                r2 = 10 ** (model2.elo / 400)
-                e1 = r1 / (r1 + r2)
-                e2 = r2 / (r1 + r2)
-                
-                new_elo1 = model1.elo + K_FACTOR * (0 - e1)
-                new_elo2 = model2.elo + K_FACTOR * (1 - e2)
-                
-                # Update ELO scores
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model1_id)
-                    .values(elo=new_elo1)
-                )
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model2_id)
-                    .values(elo=new_elo2)
-                )
-                
-            elif result == "draw":
-                # Update draw counts
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model1_id)
-                    .values(draws=models.c.draws + 1)
-                )
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model2_id)
-                    .values(draws=models.c.draws + 1)
-                )
-                
-            elif result == "invalid":
-                # Update invalid counts
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model1_id)
-                    .values(invalid=models.c.invalid + 1)
-                )
-                db.execute(
-                    models.update()
-                    .where(models.c.model_id == model2_id)
-                    .values(invalid=models.c.invalid + 1)
-                )
+                update_models_for_result(user_model1, user_model2, user_id)
             
             db.commit()
             return {"status": "success"}
@@ -636,12 +692,18 @@ async def vote(request: dict):
             raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/leaderboard")
-async def get_leaderboard():
+async def get_leaderboard(user_id: Optional[str] = None):
     with SessionLocal() as db:
+        query = select(models)
+        
+        if user_id:
+            query = query.where(models.c.user_id == user_id)
+        else:
+            query = query.where(models.c.user_id.is_(None))
+            
         # Get all models sorted by ELO score in descending order
-        result = db.execute(
-            select(models).order_by(models.c.elo.desc())
-        ).fetchall()
+        query = query.order_by(models.c.elo.desc())
+        result = db.execute(query).fetchall()
         
         return [
             {
