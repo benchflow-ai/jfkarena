@@ -1,8 +1,12 @@
 import { PostHog } from 'posthog-node'
 
-export default function PostHogClient() {
-  // eslint-disable-next-line node/prefer-global/process
-  const posthogClient = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+// eslint-disable-next-line node/prefer-global/process
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY || ''
+export function PostHogClient() {
+  if (!POSTHOG_KEY) {
+    return null
+  }
+  const posthogClient = new PostHog(POSTHOG_KEY, {
     host: 'https://us.i.posthog.com',
     flushAt: 1,
     flushInterval: 0,

@@ -3,12 +3,14 @@
 import type { VoteResult } from './types'
 import Header from '@/components/Header'
 import { useAction } from 'next-safe-action/hooks'
+import Image from 'next/image'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { voteAction } from '../leaderboard/_actions/voteAction'
 import { BattleForm } from './BattleForm'
 import { BattleResponses } from './BattleResponses'
 import { useBattle } from './hooks/useBattle'
+import jfk from './jfk.png'
 import { ResultsCard } from './ResultsCard'
 import { VotingSection } from './VotingSection'
 
@@ -47,7 +49,13 @@ export function Battle() {
 
   return (
     <div className="container py-10">
+
+      <div className="pb-6 pt-12 grid place-items-center">
+        <Image className="w-[400px] border border-gray-200" src={jfk} alt="JFK" />
+      </div>
+
       <Header />
+
       <div className="mt-8 space-y-6 max-w-3xl mx-auto">
         {error && (
           <div className="text-destructive text-center p-4">

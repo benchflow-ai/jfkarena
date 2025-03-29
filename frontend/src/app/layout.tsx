@@ -28,7 +28,7 @@ export default function RootLayout({
           <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
             <AnonymouseSessionProvider />
             <Navigation />
-            <main className="py-8 px-4 sm:px-6 lg:px-8">{children}</main>
+            <main>{children}</main>
             <Toaster />
           </div>
         </PostHogProvider>
