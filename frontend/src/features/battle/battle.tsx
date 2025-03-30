@@ -42,7 +42,21 @@ export function Battle() {
     if (!battleId || !question || !selectedModels || !selectedModels.model1 || !selectedModels.model2)
       return
 
-    await vote({ result, model1: selectedModels.model1.id, model2: selectedModels.model2.id, battleId })
+    const finalResult = result
+    let firstModelId = selectedModels.model1.id
+    let secondModelId = selectedModels.model2.id
+
+    if (isFlipped) {
+      firstModelId = selectedModels.model2.id
+      secondModelId = selectedModels.model1.id
+    }
+
+    await vote({ 
+      result: finalResult, 
+      model1: firstModelId, 
+      model2: secondModelId, 
+      battleId 
+    })
   }
 
   const error = battleError
