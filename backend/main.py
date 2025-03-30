@@ -184,8 +184,8 @@ battles = Table(
 # Supported model list
 SUPPORTED_MODELS = [
     {"id": "openai/gpt-4o-mini", "name": "GPT-4o Mini"},
-    {"id": "openai/gpt-4-turbo-preview", "name": "GPT-4 Turbo"},
-    {"id": "openai/gpt-4", "name": "GPT-4"},
+    {"id": "openai/o1", "name": "gpt-o1"},
+    {"id": "openai/gpt-4o-2024-11-20", "name": "GPT-4o"},
     {"id": "google/gemini-2.0-flash-exp:free", "name": "Gemini 2.0 Flash"},
     {"id": "google/gemini-2.5-pro-exp-03-25:free", "name": "Gemini 2.5 Pro"},
     {"id": "qwen/qwen2.5-32b-instruct", "name": "qwen2.5-32b-instruct"},
