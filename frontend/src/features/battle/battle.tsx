@@ -51,7 +51,7 @@ export function Battle() {
       secondModelId = selectedModels.model1.id
     }
 
-    await vote({ 
+    await vote({
       result: finalResult,
       model1: firstModelId,
       model2: secondModelId,
