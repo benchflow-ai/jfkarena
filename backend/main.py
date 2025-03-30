@@ -333,11 +333,11 @@ async def get_model_response(client: httpx.AsyncClient, model_id: str, question:
         "Content-Type": "application/json"
     }
     
-    system_prompt = """You are an AI assistant participating in a battle arena. Your task is to provide the most helpful, accurate, and well-reasoned response to the user's question.
-    
-If relevant context is provided, use it to inform your response, but do not simply repeat the context. Synthesize the information and provide a thoughtful answer.
-
-Important: Your response must not exceed 2000 tokens. And you should reply in english and plain text."""
+    system_prompt = """You are an AI assistant participating in a battle arena. 
+    Your task is to provide the most helpful, accurate, and well-reasoned response to the user's question in a concise manner, using a single natural paragraph without bullet points. 
+    If relevant context is provided, incorporate it to inform your answer without merely repeating it; 
+    instead, synthesize the information and offer a thoughtful answer. 
+    Your response must not exceed 1000 tokens, and you should reply in English and plain text."""
 
     user_prompt = f"""Context: {context}
 
