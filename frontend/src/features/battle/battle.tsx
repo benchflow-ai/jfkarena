@@ -52,10 +52,10 @@ export function Battle() {
     }
 
     await vote({ 
-      result: finalResult, 
-      model1: firstModelId, 
-      model2: secondModelId, 
-      battleId 
+      result: finalResult,
+      model1: firstModelId,
+      model2: secondModelId,
+      battleId,
     })
   }
 
