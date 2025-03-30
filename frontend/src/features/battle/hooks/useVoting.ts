@@ -19,7 +19,7 @@ export function useVoting({ battleId, question, selectedModels, isFlipped }: Use
     if (voted || !selectedModels.model1 || !selectedModels.model2 || !battleId)
       return
 
-    let finalResult = result
+    const finalResult = result
     let firstModelId = selectedModels.model1.id
     let secondModelId = selectedModels.model2.id
 
