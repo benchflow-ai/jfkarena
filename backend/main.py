@@ -364,7 +364,7 @@ Question: {question}"""
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
             json=data,
-            timeout=60.0
+            timeout=120.0
         )
         
         if not response.is_success:
