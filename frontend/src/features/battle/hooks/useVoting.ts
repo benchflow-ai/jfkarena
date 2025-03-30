@@ -19,21 +19,25 @@ export function useVoting({ battleId, question, selectedModels, isFlipped }: Use
     if (voted || !selectedModels.model1 || !selectedModels.model2 || !battleId)
       return
 
-    try {
-      let actualResult = result
-      if (isFlipped && (result === 'model1' || result === 'model2')) {
-        actualResult = result === 'model1' ? 'model2' : 'model1'
-      }
+    let finalResult = result
+    let firstModelId = selectedModels.model1.id
+    let secondModelId = selectedModels.model2.id
 
+    if (isFlipped) {
+      firstModelId = selectedModels.model2.id
+      secondModelId = selectedModels.model1.id
+    }
+
+    try {
       const response = await fetch('/api/proxy/vote', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          result: actualResult,
-          model1: selectedModels.model1.id,
-          model2: selectedModels.model2.id,
+          result: finalResult,
+          model1: firstModelId,
+          model2: secondModelId,
           battle_id: battleId,
           question,
         }),
