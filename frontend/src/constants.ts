@@ -3,6 +3,7 @@ export const DEFAULT_ELO = 1500
 export const MODELS = [
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
   { id: 'openai/o1', name: 'gpt-o1' },
+  { id: 'openai/gpt-4', name: 'GPT-4' },
   { id: 'openai/gpt-4o-2024-11-20', name: 'GPT-4o' },
   { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash' },
   { id: 'qwen/qwen2.5-32b-instruct', name: 'qwen2.5-32b-instruct' },
