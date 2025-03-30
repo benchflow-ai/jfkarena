@@ -44,14 +44,16 @@ export function useBattle() {
       console.warn('Not enough models available')
       return null
     }
-
-    const model1Index = Math.floor(Math.random() * MODELS.length)
-    const model1 = MODELS[model1Index]
-    MODELS.splice(model1Index, 1)
-
-    const model2Index = Math.floor(Math.random() * MODELS.length)
-    const model2 = MODELS[model2Index]
-
+    
+    const availableModels = [...MODELS]
+    
+    const model1Index = Math.floor(Math.random() * availableModels.length)
+    const model1 = availableModels[model1Index]
+    availableModels.splice(model1Index, 1)
+    
+    const model2Index = Math.floor(Math.random() * availableModels.length)
+    const model2 = availableModels[model2Index]
+    
     return { model1, model2 }
   }
 
