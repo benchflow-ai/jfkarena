@@ -7,7 +7,7 @@ export const MODELS = [
   { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash' },
   // { id: 'google/gemini-2.5-pro-exp-03-25:free', name: 'Gemini 2.5 Pro' },
   { id: 'qwen/qwen2.5-vl-32b-instruct:free', name: 'qwen2.5-vl-32b-instruct' },
-  { id: 'qwen/qwen2.5-vl-72b-instruct:free', name: 'qwen2.5-vl-72b-instruct' },
+  { id: 'qwen/qwen2.5-vl-72b-instruct', name: 'qwen2.5-vl-72b-instruct' },
   { id: 'anthropic/claude-3.7-sonnet', name: 'Claude 3.7 Sonnet' },
   { id: 'anthropic/claude-3.5-haiku-20241022:beta', name: 'Claude 3.5 haiku' },
   { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 sonnet' },
