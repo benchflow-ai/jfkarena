@@ -78,13 +78,13 @@ export function Battle() {
           </a>
           <span className="mx-1">×</span>
           <a
-            href="https://langchain.com"
+            href="https://openrouter.ai/"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 hover:text-foreground transition-colors"
           >
-            <img src="/langchain.svg" alt="LangChain Logo" className="h-5 w-5" />
-            <span>LangChain</span>
+            <img src="/openrouter.svg" alt="OpenRouter Logo" className="h-5 w-5" />
+            <span>OpenRouter</span>
           </a>
         </div>
         <Image className="w-[400px] border border-gray-200" src={jfk} alt="JFK" />
