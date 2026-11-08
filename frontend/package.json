@@ -80,7 +80,10 @@
   "pnpm": {
     "overrides": {
       "@esbuild-kit/core-utils>esbuild": "^0.25.0",
-      "@next/eslint-plugin-next>glob": "^10.5.0",
+      "@next/eslint-plugin-next>glob": "^14.0.2",
+      "@typescript-eslint/typescript-estree>minimatch": "^11.0.1",
+      "eslint-plugin-import-x>minimatch": "^11.0.1",
+      "eslint-plugin-n>minimatch": "^11.0.1",
       "next>postcss": "^8.5.23"
     }
   }
