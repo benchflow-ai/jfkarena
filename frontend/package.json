@@ -24,17 +24,17 @@
     "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-tabs": "^1.1.3",
-    "better-auth": "^1.2.5",
+    "better-auth": "^1.7.7",
     "bufferutil": "^4.0.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.41.0",
+    "drizzle-orm": "^0.45.2",
     "embla-carousel-auto-scroll": "^8.5.2",
     "embla-carousel-react": "^8.5.2",
     "jotai": "^2.12.2",
     "lucide-react": "^0.484.0",
     "motion": "^12.6.2",
-    "next": "^15.2.4",
+    "next": "^15.5.28",
     "next-safe-action": "^7.10.4",
     "posthog-js": "^1.234.1",
     "posthog-node": "^4.11.1",
@@ -48,8 +48,8 @@
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.19.3",
     "ufo": "^1.5.4",
-    "ws": "^8.18.1",
-    "zod": "link:@hookform/resolvers/zod"
+    "ws": "^8.21.0",
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.11.0",
@@ -62,7 +62,7 @@
     "@types/ws": "^8.18.0",
     "@zolplay/prettier-config": "2.0.0-beta.15",
     "autoprefixer": "^10.4.21",
-    "drizzle-kit": "^0.30.5",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9.23.0",
     "eslint-config-next": "^14.2.26",
     "eslint-config-prettier": "^10.1.1",
@@ -72,9 +72,16 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "eslint-plugin-svg-jsx": "^1.2.4",
     "eslint-plugin-tailwindcss": "^3.18.0",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.23",
     "prettier": "^3.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@esbuild-kit/core-utils>esbuild": "^0.25.0",
+      "@next/eslint-plugin-next>glob": "^10.5.0",
+      "next>postcss": "^8.5.23"
+    }
   }
 }

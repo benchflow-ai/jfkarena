@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader
 import httpx
 import json
@@ -62,7 +62,8 @@ try:
         print("Loading vector store from cache...")
         try:
             embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
-            vectorstore = FAISS.load_local(cache_path, embeddings)
+            # The index is built and saved by this app into its own cache dir, so its pickle is trusted.
+            vectorstore = FAISS.load_local(cache_path, embeddings, allow_dangerous_deserialization=True)
             print("Successfully loaded vector store from cache!")
         except Exception as e:
             print(f"Failed to load from cache: {str(e)}")
